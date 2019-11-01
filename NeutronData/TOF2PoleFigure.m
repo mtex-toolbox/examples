@@ -30,7 +30,7 @@ peakrange = [[2509      2550];...
   [1015      1030]];
 
 % specify scrystal and specimen symmetry
-CS = crystalSymmetry('-3m',[1.4,1.4,1.5]);
+CS = crystalSymmetry('-3m',[4.9,4.9,5.4]);
 
 % file with structure factors for quartz
 sf = txt2mat('quartz.txt');
