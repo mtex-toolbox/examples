@@ -1,6 +1,6 @@
 %% Seismic velocities and anisotropy - single crystal plots
 %
-% plot 2D velocity surfaces - phase, slowness & wavefront For given plane
+% Plot 2D velocity surfaces - phase, slowness & wavefront For given plane
 % normal direction, for example xvector, yvector or zvector Stishovite
 % (SiO2) at high pressure
 %                 

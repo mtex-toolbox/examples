@@ -40,12 +40,10 @@ plotzIntoPlane
 path = [mtexExamplePath filesep 'GrainExamples' filesep ];
 ebsd = EBSD.load([path 'PIL185.ctf'],'convertSpatial2EulerReferenceFrame');
  
-%% Define grains
- 
-% critical misorientation for grain construction
+% critical misorientation for grain reconstruction
 threshold = 10 *degree;
  
-% First pass at constructing grains
+% first pass at reconstructing grains
 [grains, ebsd.grainId] = calcGrains(ebsd('ice'),'angle',threshold);
  
 % remove ebsd data that correspond to up to 4 pixel grains
@@ -60,6 +58,7 @@ grains(grains.isBoundary) = [];
 % remove too small irregular grains
 grains(grains.grainSize < grains.boundarySize / 2) = [];
 
+% plot the result
 plot(ebsd,ebsd.orientations)
 
 hold on
@@ -69,9 +68,14 @@ hold off
 %% Computation of the Sphericity
 %
 % Next, let's calculate and plot the sphericity parameter of each ice grain
+% by making use of the functions |<grain2d.area.html grains.area>|,
+% |<grain2d.perimeter.html grains.perimeter>| and
+% |<grain2d.equivalentRadius.html grains.equivalentRadius>|
 
-Psi = grains.area ./ (grains.perimeter('withInclusion') .* grains.equivalentRadius);
+% directly use the formula from the first paragraph
+Psi = grains.area ./ grains.perimeter('withInclusion') ./ grains.equivalentRadius;
 
+% plot the result
 plot(grains, Psi, 'colorrange', [0 0.5])
  
 mtexColorbar ('title','Sphericity Parameter')
@@ -83,7 +87,7 @@ clear Psi
 % Next we investigate how step size influences grain boundary irregularity
 % measurements. To do this, we can artificially increase the step size of
 % the EBSD data to from 10 up to 100 μm. Then, we choose one representative
-% grain (the one with a large number of pixels) and see how the sphericity
+% grain (one with a large number of pixels) and see how the sphericity
 % parameter changes as the EBSD step size increases.
 
 for i = 1:20
@@ -117,7 +121,7 @@ mtexColorbar ('title', 'sphericity parameter')
 
 %% 
 % Now we are able to plot the sphericity parameter as a function of the
-% step size
+% step size.
 
 clf
 scatter (gS, Psi, 150,5:5:100,'filled','MarkerEdgeColor','k','linewidth', 1.5)
@@ -191,5 +195,5 @@ ylabel ('Sphericity parameter')
 % Hager, Marianne Negrini, Chao Qi,
 % <https://doi.org/10.1016/j.actamat.2021.116810 _Using grain boundary
 % irregularity to quantify dynamic recrystallization in ice_>, Acta
-% Materialia, 2021,
+% Materialia, 2021.
 %
