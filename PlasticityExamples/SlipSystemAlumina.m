@@ -153,7 +153,6 @@ plot(ebsdS,cKey.orientation2color(ebsdS.orientations))
 hold on
 plot(ebsd, ebsd.bc,'FaceAlpha',0.3)
 colormap gray % make the image grayscale
-mtexColorbar
 hold off
 
 order = 1;
