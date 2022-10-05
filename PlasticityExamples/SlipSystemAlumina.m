@@ -1,13 +1,12 @@
 %% Slip System Analysis in $\alpha$-Alumina
 %
-% Author: Ruben Wagner, TU Bergakademie Freiberg, Institute of Materials
-% Engineering, Germany
+% Author: Ruben Wagner, Robert Lehnert, TU Bergakademie Freiberg, Institute
+% of Materials Engineering, Germany
 %  
 %% Data Import
 % The following EBSD maps has been measured by Ruben Wagner TUBAF,
-% Institute of Materials Engineering, 2022 within the project SFB 920.
-% It shows an alumina with multiphase inclusions in 42CrMo4 steel after 
-% nanoindentation. 
+% Institute of Materials Engineering, 2022 within the project SFB 920. It
+% shows an alumina inclusions in 42CrMo4 steel after nanoindentation.
 
 % set crystal symmetry
 cs = crystalSymmetry.load('Al2O3-Corundum.cif');
@@ -24,7 +23,7 @@ ebsd = EBSD.load('K1_C_16_EBSD_original_bc.txt',...
 rot = rotation.byEuler(90*degree,180*degree,0*degree);
 ebsd = rotate(ebsd('indexed'),rot,'keepXY');
 
-%% initial grain reconstruction and visualization
+%% Initial grain reconstruction and visualization
 
 % reconstruct grain structure
 [grains,ebsd.grainId] = calcGrains(ebsd,'angle',1*degree);
@@ -76,7 +75,7 @@ ispseudoBnd = angle(gB.misorientation,pseudoSym)<3*degree;
 plot(grains,cKey.orientation2color(grains.meanOrientation))
 
 %%
-% *3. Correct the EBSD data according to the pseudo symmetry
+% *3. Correct the EBSD data according to the pseudo symmetry*
 
 % find all EBSD data which differ by the computed grain orientation by
 % about 180 degree
@@ -117,8 +116,8 @@ hold off
 
 %% Schmid Factor Analysis
 % Next we compute the the active slip system during pressure in
-% z-direction. The dominant slip systems in ... are described in Mao2011
-% and 2012 as
+% z-direction. The possible dominant slip systems in alumina are described in
+% Mao2011 and 2012 as
 
 n = Miller(1,0,-1,1,cs,'HKIL');
 b = Miller(-1,2,-1,0,cs,'UVTW');
@@ -193,7 +192,8 @@ end
 % * Ruben Wagner, Robert Lehnert, Enrico Storti, Lisa Ditscherlein,
 % Christina Schröder, Steffen Dudczig, Urs A. Peuker, Olena Volkova,
 % Christos G. Aneziris, Horst Biermann, Anja Weidner,
-% <https://doi.org/10.1016/j.actamat.2021.116810 _Nanoindentation of
-% alumina and multiphase inclusions in 42CrMo4 steel_>, 2022.
+% <https://www.sciencedirect.com/science/article/abs/pii/S1044580322005393
+% _Nanoindentation of alumina and multiphase inclusions in 42CrMo4 steel_>,
+% 2022.
 
 
