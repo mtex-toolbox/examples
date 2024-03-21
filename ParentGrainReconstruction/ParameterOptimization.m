@@ -70,29 +70,30 @@ thrsh_angles = [6,3,2,1.5,1];
 figure;
 f(1) = newMtexFigure('layout',[2,3]);
 
-% Loop over different child grain reconstructrions
+% Loop over different child grain reconstructions
 for ii = 1:length(thrsh_angles)
-    % Load data
-    mtexdata martensite
+  
+  % Load data
+  mtexdata martensite silent
 
-    % Calculate grains with defined angular threshold
-    [grains,ebsd.grainId] = calcGrains(ebsd, 'angle',thrsh_angles(ii)*degree);
-    ebsd(grains(grains.grainSize < 3)) = [];
-    [grains,ebsd.grainId] = calcGrains(ebsd,'angle',thrsh_angles(ii)*degree);
-    grains = smooth(grains,5);
+  % Calculate grains with defined angular threshold
+  [grains,ebsd.grainId] = calcGrains(ebsd('indexed'), 'angle',thrsh_angles(ii)*degree);
+  ebsd(grains(grains.grainSize < 3)) = [];
+  [grains,ebsd.grainId] = calcGrains(ebsd('indexed'),'angle',thrsh_angles(ii)*degree);
+  grains = smooth(grains,5);
+  
+  % Plot the orientation data and overlay the grain boundaries
+  plot(ebsd,ebsd.orientations);
+  hold on
+  plot(grains.boundary)
+  title(strcat("Threshold angle: ", num2str(thrsh_angles(ii),"%.1f"), "^{\circ}"),...
+    'interpreter','tex');
+  hold off
 
-    % Plot the orientation data and overlay the grain boundaries
-    plot(ebsd,ebsd.orientations);
-    hold on
-    plot(grains.boundary)
-    title(strcat("Threshold angle: ", num2str(thrsh_angles(ii),"%.1f"), "^{\circ}"),...
-          'interpreter','tex');
-    hold off
-
-    % Enable multiplot
-    if ii < length(thrsh_angles)
-        f(1); nextAxis;
-    end
+  % Enable multiplot
+  if ii < length(thrsh_angles)
+    f(1); nextAxis;
+  end
 end
 
 % Let us rename the figure
@@ -118,44 +119,45 @@ thrsh_angles = thrsh_angles(1:3);
 figure;
 f(2) = newMtexFigure('layout',[1,length(thrsh_angles)]);
 
-%Child grain reconstructrion 
+%Child grain reconstruction 
 for ii = 1:length(thrsh_angles)
-    % Load data
-    mtexdata martensite
 
-    % Calculate grains with defined angular threshold
-    [grains,ebsd.grainId] = calcGrains(ebsd, 'angle',thrsh_angles(ii)*degree);
-    ebsd(grains(grains.grainSize < 3)) = [];
-    [grains,ebsd.grainId] = calcGrains(ebsd,'angle',thrsh_angles(ii)*degree);
-    grains = smooth(grains,5);
+  % Load data
+  mtexdata martensite silent
     
-    % set up the PGR job
-    job = parentGrainReconstructor(ebsd,grains);
+  % Calculate grains with defined angular threshold
+  [grains,ebsd.grainId] = calcGrains(ebsd('indexed'), 'angle',thrsh_angles(ii)*degree);
+  ebsd(grains(grains.grainSize < 3)) = [];
+  [grains,ebsd.grainId] = calcGrains(ebsd('indexed'),'angle',thrsh_angles(ii)*degree);
+  grains = smooth(grains,5);
+  
+  % set up the PGR job
+  job = parentGrainReconstructor(ebsd,grains);
+  
+  % initial guess for the parent to child orientation relationship
+  job.p2c = orientation.KurdjumovSachs(job.csParent, job.csChild);
+  
+  % refine the OR
+  job.calcParent2Child;
     
-    % initial guess for the parent to child orientation relationship
-    job.p2c = orientation.KurdjumovSachs(job.csParent, job.csChild);
+  % setup the variant graph
+  job.calcVariantGraph('threshold',2.5*degree,'tolerance',2.5*degree)
     
-    % refine the OR
-    job.calcParent2Child;
+  % cluster the variant graph
+  job.clusterVariantGraph;
     
-    % setup the variant graph
-    job.calcVariantGraph('threshold',2.5*degree,'tolerance',2.5*degree)
+  % calculate the parent grain orientations
+  job.calcParentFromVote('minProb',0.5)
     
-    % cluster the variant graph
-    job.clusterVariantGraph;
-    
-    % calculate the parent grain orientations
-    job.calcParentFromVote('minProb',0.5)
-    
-    % plot the parent grains (before any further processing)
-    plot(job.parentGrains,job.parentGrains.meanOrientation)
-    title(strcat("Threshold angle: ", num2str(thrsh_angles(ii),"%.1f"), "^{\circ}"),...
-          'interpreter','tex');
-
-    % Enable multiplot
-    if ii < length(thrsh_angles)
-        f(2); nextAxis
-    end
+  % plot the parent grains (before any further processing)
+  plot(job.parentGrains,job.parentGrains.meanOrientation)
+  title(strcat("Threshold angle: ", num2str(thrsh_angles(ii),"%.1f"), "^{\circ}"),...
+    'interpreter','tex');
+  
+  % Enable multiplot
+  if ii < length(thrsh_angles)
+    f(2); nextAxis
+  end
 end
 
 % Let us rename the figure
@@ -175,12 +177,12 @@ set(f(2).parent,'Name','PGR at different Child grain threshold values');
 % |calcParent2Child| function vs. assuming several rational ORs on PGR.
 
 % Load data
-mtexdata martensite
+mtexdata martensite silent
 
 % Calculate grains with defined angular threshold
-[grains,ebsd.grainId] = calcGrains(ebsd, 'angle',2*degree);
+[grains,ebsd.grainId] = calcGrains(ebsd('indexed'), 'angle',2*degree);
 ebsd(grains(grains.grainSize < 3)) = [];
-[grains,ebsd.grainId] = calcGrains(ebsd,'angle',2*degree);
+[grains,ebsd.grainId] = calcGrains(ebsd('indexed'),'angle',2*degree);
 grains = smooth(grains,5);
     
 % Initialize the parent grain reconstructor class
@@ -211,38 +213,38 @@ fh = figure;
 
 % loop over different ORs
 for ii = 1:length(ORs)
-    %Assign OR as currently active OR
-    job.p2c = ORs(ii);
-
-    % compute the misfit for all child to child grain neighbours
-    [fit,c2cPairs] = job.calcGBFit;
-
-    % Plot the misfit in histogram
-    figure(fh);
-    hold on
-    histogram(fit./degree,'BinMethod','sqrt');
-    xlabel('Misfit Angle (^{\circ})',"Interpreter","tex");
-    ylabel('Counts');
-    hold off
-
-    % select grain boundary segments by grain ids
-    [gB,pairId] = job.grains.boundary.selectByGrainId(c2cPairs);  
-
-    % plot the child phase
-    figure(f(3).parent);
-    plot(ebsd,ebsd.orientations,'faceAlpha',0.5)    
-
-    % and on top of it the boundaries colorized by the misfit
-    hold on;
-    % scale fit between 0 and 1 - required for edgeAlpha
-    plot(gB, 'edgeAlpha', (fit(pairId) ./ degree - 2.5)./2 ,'linewidth',2);
-    hold off
-    title(ORnames(ii));
-
-    % Enable multiplot
-    if ii < length(ORs)
-        figure(f(3).parent); nextAxis;
-    end
+  %Assign OR as currently active OR
+  job.p2c = ORs(ii);
+  
+  % compute the misfit for all child to child grain neighbours
+  [fit,c2cPairs] = job.calcGBFit;
+  
+  % Plot the misfit in histogram
+  figure(fh);
+  hold on
+  histogram(fit./degree,'BinMethod','sqrt');
+  xlabel('Misfit Angle (^{\circ})',"Interpreter","tex");
+  ylabel('Counts');
+  hold off
+  
+  % select grain boundary segments by grain ids
+  [gB,pairId] = job.grains.boundary.selectByGrainId(c2cPairs);
+    
+  % plot the child phase
+  figure(f(3).parent);
+  plot(ebsd,ebsd.orientations,'faceAlpha',0.5)
+  
+  % and on top of it the boundaries colorized by the misfit
+  hold on;
+  % scale fit between 0 and 1 - required for edgeAlpha
+  plot(gB, 'edgeAlpha', (fit(pairId) ./ degree - 2.5)./2 ,'linewidth',2);
+  hold off
+  title(ORnames(ii));
+  
+  % Enable multiplot
+  if ii < length(ORs)
+    figure(f(3).parent); nextAxis;
+  end
 end
 
 % Adding labels and titles
@@ -257,7 +259,7 @@ legend(ORnames);
 % far more representative of the actual OR present in the microstructure.
 % Plotting the fit of the OR onto the grain boundaries showed that the
 % fitted OR nicely outlines the grain boundaries of the parent grains,
-% which is an important prerequisiste for successful PGR.
+% which is an important prerequisite for successful PGR.
 
 %% Tune parameters for OR refinement
 % The OR refinement using |calcParent2Child| can be fine-tuned with custom
@@ -283,41 +285,42 @@ fh2 = figure;
 
 % loop over different parameter sets 
 for ii = 1:length(threshold)
-    %Assign initial guess for OR
-    job.p2c = KS;
-
-    % Refine OR
-    job.calcParent2Child('quantile',quantile(ii),'threshold',threshold(ii)*degree);
-
-    % Compute the misfit for all child to child grain neighbours
-    [fit,c2cPairs] = job.calcGBFit;
-
-    % Plot misfit distribution in histogram
-    figure(fh2);
-    hold on
-    histogram(fit./degree,'BinMethod','sqrt','facealpha',0.3);
-    xlabel('Misfit Angle (^{\circ})',"Interpreter","tex");
-    ylabel('Counts');
-    hold off
-
-    % Select grain boundary segments by grain ids
-    [gB,pairId] = job.grains.boundary.selectByGrainId(c2cPairs);
-
-    % Plot the child phase
-    figure(f(4).parent);
-    plot(ebsd,ebsd.orientations,'faceAlpha',0.5)    
-    % and on top of it the boundaries colorized by the misfit
-    hold on;
-
-    % Scale fit between 0 and 1 - required for edgeAlpha
-    plot(gB, 'edgeAlpha', (fit(pairId) ./ degree - 2.5)./2 ,'linewidth',2);
-    hold off
-    title(strcat("Threshold: ",num2str(threshold(ii))," Quantile: ", num2str(quantile(ii))));
-
-    % Enable multiplot
-    if ii < length(threshold)
-        figure(f(4).parent); nextAxis;
-    end
+    
+  %Assign initial guess for OR
+  job.p2c = KS;
+  
+  % Refine OR
+  job.calcParent2Child('quantile',quantile(ii),'threshold',threshold(ii)*degree);
+  
+  % Compute the misfit for all child to child grain neighbours
+  [fit,c2cPairs] = job.calcGBFit;
+  
+  % Plot misfit distribution in histogram
+  figure(fh2);
+  hold on
+  histogram(fit./degree,'BinMethod','sqrt','facealpha',0.3);
+  xlabel('Misfit Angle (^{\circ})',"Interpreter","tex");
+  ylabel('Counts');
+  hold off
+  
+  % Select grain boundary segments by grain ids
+  [gB,pairId] = job.grains.boundary.selectByGrainId(c2cPairs);
+  
+  % Plot the child phase
+  figure(f(4).parent);
+  plot(ebsd,ebsd.orientations,'faceAlpha',0.5)
+  % and on top of it the boundaries colorized by the misfit
+  hold on;
+  
+  % Scale fit between 0 and 1 - required for edgeAlpha
+  plot(gB, 'edgeAlpha', (fit(pairId) ./ degree - 2.5)./2 ,'linewidth',2);
+  hold off
+  title(strcat("Threshold: ",num2str(threshold(ii))," Quantile: ", num2str(quantile(ii))));
+  
+  % Enable multiplot
+  if ii < length(threshold)
+    figure(f(4).parent); nextAxis;
+  end
 end
 
 % Adding labels and titles
@@ -370,7 +373,7 @@ job.calcParent2Child;
 figure;
 hold on
 h = histogram(fit./degree,'BinMethod','sqrt','normalization','pdf',...
-             'FaceAlpha',0.3,'DisplayName',"OR misfit distribution");
+  'FaceAlpha',0.3,'DisplayName',"OR misfit distribution");
     
 % Parameter sets for tolerance and threshold
 tol = [2.5,1.5,1.5,2.0];
@@ -387,11 +390,11 @@ ylabel('Probability');
 
 % Compute the CDF values for the normal distribution
 for ii = 1:length(tol)
-    y = 1 - 0.5 * (1 + erf(2*(x - threshold(ii))./tol(ii)));
-    hold on
-    plot(x, y, 'LineWidth', 2, 'DisplayName',...
-         strcat('Tol: ',num2str(tol(ii)), "^{\circ}, Thresh: ", ...
-         num2str(threshold(ii)),"^{\circ}"));
+  y = 1 - 0.5 * (1 + erf(2*(x - threshold(ii))./tol(ii)));
+  hold on
+  plot(x, y, 'LineWidth', 2, 'DisplayName',...
+    strcat('Tol: ',num2str(tol(ii)), "^{\circ}, Thresh: ", ...
+    num2str(threshold(ii)),"^{\circ}"));
 end
 
 % Format plot and figure
@@ -407,7 +410,7 @@ set(gcf,'Name','OR-probability functions');
 % which parameter set leads to the best separation of prior parent and 
 % OR-related boundaries. 
 
-% compute the misfit for all child to child grain neighbours
+% compute the misfit for all child to child grain neighbors
 [fit,c2cPairs] = job.calcGBFit;
 
 % select grain boundary segments by grain ids
@@ -419,21 +422,21 @@ f(5) = newMtexFigure('layout',[2,2]);
 
 %Loop over probability function parameters
 for ii = 1:length(tol)
-    % plot the child phase
-    plot(ebsd,ebsd.orientations,'faceAlpha',0.5)    
-    % and on top of it the boundaries colorized by the misfit
-    hold on;
-
-    % scale fit between 0 and 1 with different parameter sets
-    plot(gB, 'edgeAlpha', (fit(pairId) ./ degree - threshold(ii))./tol(ii) ,'linewidth',2);
-    hold off
-    title(strcat('Tol: ',num2str(tol(ii)), "^{\circ}, Thresh: ", ...
-         num2str(threshold(ii)),"^{\circ}"),"Interpreter","tex");
+  % plot the child phase
+  plot(ebsd,ebsd.orientations,'faceAlpha',0.5)
+  % and on top of it the boundaries colorized by the misfit
+  hold on;
   
-    % Enable multiplot
-    if ii < length(tol)
-        figure(f(5).parent); nextAxis;
-    end
+  % scale fit between 0 and 1 with different parameter sets
+  plot(gB, 'edgeAlpha', (fit(pairId) ./ degree - threshold(ii))./tol(ii) ,'linewidth',2);
+  hold off
+  title(strcat('Tol: ',num2str(tol(ii)), "^{\circ}, Thresh: ", ...
+    num2str(threshold(ii)),"^{\circ}"),"Interpreter","tex");
+  
+  % Enable multiplot
+  if ii < length(tol)
+    figure(f(5).parent); nextAxis;
+  end
 end
 
 % Let us rename the figure
@@ -465,28 +468,28 @@ f(6) = newMtexFigure('layout',[2,2]);
 
 %Loop over probability function parameters
 for ii = 1:length(tol)
-    % setup the variant graph
-    job.calcVariantGraph('threshold',threshold(ii).*degree,...
-                         'tolerance',tol(ii)*degree);
-
-    % cluster the variant graph
-    job.clusterVariantGraph;
-
-    % calculate the parent grain orientations
-    job.calcParentFromVote('minProb',0.5);
-
-    % Plot the PGR result (before any cleaning is applied)
-    plot(job.parentGrains,job.parentGrains.meanOrientation);
-    title(strcat('Tol: ',num2str(tol(ii)), "^{\circ}, Thresh:", ...
-         num2str(threshold(ii)),"^{\circ}"),"Interpreter","tex");
-
-    % Enable multiplot
-    if ii < length(tol)
-        figure(f(6).parent); nextAxis;
-    end
-
-    % Revert PGR results to allow new PGR with different parameters
-    job.revert;
+  % setup the variant graph
+  job.calcVariantGraph('threshold',threshold(ii).*degree,...
+    'tolerance',tol(ii)*degree);
+  
+  % cluster the variant graph
+  job.clusterVariantGraph;
+  
+  % calculate the parent grain orientations
+  job.calcParentFromVote('minProb',0.5);
+  
+  % Plot the PGR result (before any cleaning is applied)
+  plot(job.parentGrains,job.parentGrains.meanOrientation);
+  title(strcat('Tol: ',num2str(tol(ii)), "^{\circ}, Thresh:", ...
+    num2str(threshold(ii)),"^{\circ}"),"Interpreter","tex");
+  
+  % Enable multiplot
+  if ii < length(tol)
+    figure(f(6).parent); nextAxis;
+  end
+  
+  % Revert PGR results to allow new PGR with different parameters
+  job.revert;
 end
 
 % Let us rename the figure
@@ -550,23 +553,23 @@ job.calcVariantGraph('threshold',2.5*degree,'tolerance',2.5*degree)
 
 % Check reconstructed microstructure for different clustering parameters
 for ii = 1:length(alpha)
-    % cluster the variant graph with different parameters
-    job.clusterVariantGraph('inflationPower',alpha(ii),'numIter',numIter(ii));
-
-    % calculate the parent grain orientations
-    job.calcParentFromVote('minProb',0.5)
-
-    % Plot the PGR result (before any cleaning is applied)
-    plot(job.parentGrains,job.parentGrains.meanOrientation);
-    title(strcat('Alpha: ',num2str(alpha(ii)), ", NumIter: ", num2str(numIter(ii))));
-
-    % Enable multiplot
-    if ii < length(alpha)
-        figure(f(7).parent); nextAxis;
-    end
-
-    % Revert PGR results to allow new PGR with different parameters
-    job.revert;
+  % cluster the variant graph with different parameters
+  job.clusterVariantGraph('inflationPower',alpha(ii),'numIter',numIter(ii));
+  
+  % calculate the parent grain orientations
+  job.calcParentFromVote('minProb',0.5)
+  
+  % Plot the PGR result (before any cleaning is applied)
+  plot(job.parentGrains,job.parentGrains.meanOrientation);
+  title(strcat('Alpha: ',num2str(alpha(ii)), ", NumIter: ", num2str(numIter(ii))));
+  
+  % Enable multiplot
+  if ii < length(alpha)
+    figure(f(7).parent); nextAxis;
+  end
+  
+  % Revert PGR results to allow new PGR with different parameters
+  job.revert;
 end
 
 % Let us rename the figure
@@ -620,8 +623,8 @@ nextAxis;
 % Calculate new Votes for all parent-child grain combinations. Iterate a
 % few times
 for ii = 1:5
-    job.calcGBVotes('p2c','reconsiderAll')
-    job.calcParentFromVote('minProb',0.5);
+  job.calcGBVotes('p2c','reconsiderAll')
+  job.calcParentFromVote('minProb',0.5);
 end
 
 % Plot the PGR result (before any cleaning is applied)
