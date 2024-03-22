@@ -1,7 +1,6 @@
 %% Parameter optimization for Parent Grain Reconstruction (PGR)
 %
-% Author: Frank Nießen, Technical University of Denmark, Department of
-% Civil and Mechanical Engineering, Germany
+% Author: Frank Nießen, Technical University of Denmark, Department of Civil and Mechanical Engineering, Germany
 %  
 % This script demonstrates a systematic approach on how to get the most out
 % of challenging PGR tasks by systematic tuning of the most critical
@@ -91,9 +90,9 @@ end
 
 %%
 % From the child grain reconstructions it is apparent that in this dataset
-% threshold values of 1 to 1.5 degrees lead to a significant loss of EBSD
-% data associated with small grains. Therefore only the range of 2-6 
-% degrees is feasible as a starting point for grain reconstruction. 
+% threshold values of 1 to 1.5° lead to a significant loss of EBSD
+% data associated with small grains. Therefore only the range of 2-6° 
+% is feasible as a starting point for grain reconstruction. 
 %
 %% Effect of child grain reconstruction on PGR results
 % We will now carry out the PGR on child grains reconstructed with the
@@ -239,6 +238,7 @@ legend(ORnames);
 %%
 % The histogram plot shows that OR refinement yields an OR that is
 % far more representative of the actual OR present in the microstructure.
+% The Greninger-Trojano (GT) OR is closest to the fitted OR.
 % Plotting the fit of the OR onto the grain boundaries showed that the
 % fitted OR nicely outlines the grain boundaries of the parent grains,
 % which is an important prerequisite for successful PGR.
@@ -249,7 +249,7 @@ legend(ORnames);
 % value is the maximum misfit between the OR and grain misorientations to 
 % be considered for the optimization of the OR. The |quantile| value 
 % defines which quantile of the misfit distribution (see previous histogram) 
-% is considered for optimization of the OR. Whichever criterion cuts of
+% is considered for optimization of the OR. Whichever criterion cuts off
 % more of the available data will be enforced. The parameters are used to 
 % make sure that the parent grain boundaries, which are not OR-related 
 % boundaries, can be excluded from the OR refinement procedure in a
@@ -320,7 +320,7 @@ legend(append("Thresh.: ",string(threshold),", Quantile: ",string(quantile)));
 % angle of 10° and the |quantile| of 0.9 are the default values
 % of the |calcParent2Child| command. For your dataset, the quantile value
 % should reflect the ratio between prior parent boundaries and OR-related
-% boundaries. In the present case prior austenite grains are large and
+% boundaries. In the present case, prior austenite grains are large and
 % filled with a very fine OR-related boundary structure within, meaning
 % that the quantile value does not play a big role. If you have small prior
 % parent grains with little internal OR-related boundary structure you
@@ -328,7 +328,7 @@ legend(append("Thresh.: ",string(threshold),", Quantile: ",string(quantile)));
 
 %% Translating the OR misfit into a probability function
 % Next, we need to translate the misfit between the OR and the grain
-% misorientations $\omega$ into an OR probability function $\Phi$:
+% misorientations $\omega$ into an OR probability function $\Psi$:
 % 
 % \begin{equation}
 % \Psi(\omega) = 1 - \tfrac{1}{2}\left(1 + \mathrm{erf}(2 \tfrac{\omega - \delta}{\sigma})\right).
@@ -418,12 +418,12 @@ for ii = 1:length(tol)
 end
 
 %%
-% We can see that a sharp tolerance of 1.5 and threshold value of 1.5 mark
+% We can see that a sharp tolerance of 1.5° and threshold value of 1.5° mark
 % several boundaries as prior austenite boundaries, even though they are in
 % the interior of what appears to be the prior austenite grains.
-% Conversely, a very relaxed value pair of tolerance 2 and threshold 5 does
+% Conversely, a very relaxed value pair of tolerance 2° and threshold 5° does
 % not highlight boundaries that appear to be prior austenite boundaries.
-% The value pair tolerance 2.5 and threshold 2.5 seems to deliver the best
+% The value pair tolerance 2.5° and threshold 2.5° seems to deliver the best
 % result. In the misfit distribution histogram, this parameter set nicely 
 % separates the mode of the distribution from the tail to the right. 
 % You will have to experiment with these parameters for your own
@@ -493,7 +493,6 @@ end
 % F. Niessen, A.A. Gazder, The variant graph approach to improved parent
 % grain reconstruction, Materialia 22 (2022) 101399>.
 % 
-%
 % When iteratively applying the Markovian clustering algorithm to the 
 % variant graph, edges with high probability are further strengthened and 
 % edges with low probability are further weakened, leading to eventual
@@ -519,11 +518,11 @@ numIter = [5,5,5,10,10,10];
 figure;
 f(7) = newMtexFigure('layout',[2,3],'Name','PGR results for different clustering parameters');
 
-% setup the variant graph
-job.calcVariantGraph('threshold',2.5*degree,'tolerance',2.5*degree)
-
 % Check reconstructed microstructure for different clustering parameters
 for ii = 1:length(alpha)
+  % setup the variant graph 
+  job.calcVariantGraph('threshold',2.5*degree,'tolerance',2.5*degree)
+
   % cluster the variant graph with different parameters
   job.clusterVariantGraph('inflationPower',alpha(ii),'numIter',numIter(ii));
   
@@ -547,14 +546,14 @@ end
 % It may not be entirely possible to judge the quality of the PGR with
 % having access to a validation dataset (i.e. without knowing the actual
 % parent microstructure), nevertheless some observations can be made: An
-% inflation parameter of 1.2 seems to be too high, leading to large patches
+% inflation power of 1.2 seems to be too high, leading to large patches
 % of material that have not been reconstructed. A good indicator for the
 % present microstructure is to check in how far likely annealing twins have
 % been resolved with a realistic morphology and how very small parent
 % grains may become present that are unlikely to be associated with real
-% parent grains. Based on this the choice of an inflation parameter of 1 and
-% numIter of 10 seems to be a good choice, although it is quite objective
-% in this case. Note that an inflation parameter of 1 means that no
+% parent grains. Based on this the choice of an inflation power of 1.05 and
+% numIter of 10 seems to be a good choice, although it is hard to make an 
+% objective assessment. Note that an inflation power of 1 means that no
 % clustering is enforced - with this setting the algorithm simply explores
 % the local neighborhood up to the degree of neighbor defined by |numIter|
 % and bases the most likely parent orientation on the overall probabilities
@@ -572,8 +571,11 @@ end
 
 % *** PGR using the Variant Graph Approach
 
+% setup the variant graph 
+job.calcVariantGraph('threshold',2.5*degree,'tolerance',2.5*degree)
+
 % Cluster the variant graph with different parameters
-job.clusterVariantGraph('inflationPower',1,'numIter',10);
+job.clusterVariantGraph('inflationPower',1.05,'numIter',10);
 
 % Calculate the parent grain orientations
 job.calcParentFromVote('minProb',0.5);
@@ -621,7 +623,7 @@ plot(job.parentGrains,job.parentGrains.meanOrientation);
 title("+ removing small inclusions")
 
 %%
-% We are now finished with the PGR and can as a last step plot the child 
+% We are now finished with the PGR and can, as a last step, plot the child 
 % and reconstructed parent EBSD data overlayed with the outlines of the 
 % parent grains.
 
@@ -642,8 +644,3 @@ plot(parentEBSD(job.csParent),parentEBSD(job.csParent).orientations);
 hold on
 plot(job.grains.boundary,'lineWidth',2)
 hold off
-
-
-
-
-
