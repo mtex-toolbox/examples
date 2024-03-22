@@ -90,6 +90,7 @@ clear Psi
 % grain (one with a large number of pixels) and see how the sphericity
 % parameter changes as the EBSD step size increases.
 
+newMtexFigure('layout',[4,5])
 for i = 1:20
     
   % now, we increase the step size of EBSD data artifically

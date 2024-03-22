@@ -3,36 +3,31 @@
 % Author: Frank Nießen, Technical University of Denmark, Department of
 % Civil and Mechanical Engineering, Germany
 %  
-% This script demonstrates a systematic approach on how to get the most out 
+% This script demonstrates a systematic approach on how to get the most out
 % of challenging PGR tasks by systematic tuning of the most critical
-% parameters. The microstructure explored in this example is lath martensite, 
-% for which especially the reconstruction of annealing twins in the parent
-% austenite phase is a challenging task. This is the same dataset that is
-% explored in the general documentation for martensite Parent Grain
-% Reconstruction
-% (https://mtex-toolbox.github.io/MaParentGrainReconstruction.html).
+% parameters. The microstructure explored in this example is lath
+% martensite, for which especially the reconstruction of annealing twins in
+% the parent austenite phase is a challenging task. This is the same
+% dataset that is explored in
+% <https://mtex-toolbox.github.io/MaParentGrainReconstruction.html the
+% general documentation for martensite Parent Grain Reconstruction>.
 %
 % As the script is quite long and some sections take some time to execute,
 % I highly recommend running this script section-by-section. You ideally
-% want to follow my talk of the MTEX User Meeting 2024 before or alongside
-% exploring this script: 
-% https://www.youtube.com/watch?v=Ib1qtJAWgd8&t=83s
+% want to follow my <https://www.youtube.com/watch?v=Ib1qtJAWgd8&t=83s
+% talk> at the MTEX User Meeting 2024 before or alongside exploring this
+% script.
+
 
 %% Data Import
 % Let us begin by loading the MTEX documentation dataset on martensite from
-% Ref. \textit{[T. Nyyssönen, P. Peura, V.-T. Kuokkala, Crystallography, 
-% Morphology, and Martensite Transformation of Prior Austenite in 
-% Intercritically Annealed High-Aluminum Steel, 
-% Metall Mater Trans A 49 (2018) 6426–6441. 
-% https://doi.org/10.1007/s11661-018-4904-9.]}
-
-% clean up
-home
-close all
-clearvars
+% Ref. <https://doi.org/10.1007/s11661-018-4904-9 T. Nyyssönen, P. Peura,
+% V.-T. Kuokkala, Crystallography, Morphology, and Martensite
+% Transformation of Prior Austenite in Intercritically Annealed
+% High-Aluminum Steel, Metall Mater Trans A 49 (2018) 6426–6441>.
 
 % get MTEX data
-mtexdata martensite
+mtexdata martensite silent
 
 % set plotting convention
 setMTEXpref('xAxisDirection','east');
@@ -49,16 +44,15 @@ ipfKey.inversePoleFigureDirection = vector3d.Z;
 colors = ipfKey.orientation2color(ebsd.orientations);
 
 % Plot the microstructure data
-figure;
+figure('Name','Martensitic microstructure')
 plot(ebsd,colors);
-set(gcf,'Name','Martensitic microstructure');
 
 %%
 % We can see that the dataset only consists of lath martensite, the child 
 % phase in this transformation system, and unindexed points. Our aim is to
 % accurately reconstruct the prior austenite microstructure, the parent 
 % microstructure in this example.
-
+%
 %% Explore different threshold angles for child grain reconstruction
 % Let us explore some different threshold angles to reconstruct the child
 % grains at different levels of detail.
@@ -68,7 +62,7 @@ thrsh_angles = [6,3,2,1.5,1];
 
 %Prepare plotting
 figure;
-f(1) = newMtexFigure('layout',[2,3]);
+f(1) = newMtexFigure('layout',[2,3],'Name','Child grain reconstruction at different threshold angles');
 
 % Loop over different child grain reconstructions
 for ii = 1:length(thrsh_angles)
@@ -91,20 +85,16 @@ for ii = 1:length(thrsh_angles)
   hold off
 
   % Enable multiplot
-  if ii < length(thrsh_angles)
-    f(1); nextAxis;
-  end
+  if ii < length(thrsh_angles), nextAxis; end
 end
 
-% Let us rename the figure
-set(f(1).parent,'Name','Child grain reconstruction at different threshold angles');
 
 %%
 % From the child grain reconstructions it is apparent that in this dataset
 % threshold values of 1 to 1.5 degrees lead to a significant loss of EBSD
 % data associated with small grains. Therefore only the range of 2-6 
 % degrees is feasible as a starting point for grain reconstruction. 
-
+%
 %% Effect of child grain reconstruction on PGR results
 % We will now carry out the PGR on child grains reconstructed with the
 % identified angular threshold values. We will otherwise assume reasonable 
@@ -117,7 +107,7 @@ thrsh_angles = thrsh_angles(1:3);
 
 %Prepare plotting
 figure;
-f(2) = newMtexFigure('layout',[1,length(thrsh_angles)]);
+f(2) = newMtexFigure('layout',[1,length(thrsh_angles)],'Name','PGR at different Child grain threshold values');
 
 %Child grain reconstruction 
 for ii = 1:length(thrsh_angles)
@@ -141,13 +131,13 @@ for ii = 1:length(thrsh_angles)
   job.calcParent2Child;
     
   % setup the variant graph
-  job.calcVariantGraph('threshold',2.5*degree,'tolerance',2.5*degree)
+  job.calcVariantGraph('threshold',2.5*degree,'tolerance',2.5*degree);
     
   % cluster the variant graph
   job.clusterVariantGraph;
     
   % calculate the parent grain orientations
-  job.calcParentFromVote('minProb',0.5)
+  job.calcParentFromVote('minProb',0.5);
     
   % plot the parent grains (before any further processing)
   plot(job.parentGrains,job.parentGrains.meanOrientation)
@@ -155,13 +145,9 @@ for ii = 1:length(thrsh_angles)
     'interpreter','tex');
   
   % Enable multiplot
-  if ii < length(thrsh_angles)
-    f(2); nextAxis
-  end
+  if ii < length(thrsh_angles), nextAxis; end
 end
 
-% Let us rename the figure
-set(f(2).parent,'Name','PGR at different Child grain threshold values');
 %%
 % The effect of child grain reconstruction appears to be quite prominent -
 % the smaller the reconstruction threshold angle the more of the parent
@@ -169,7 +155,7 @@ set(f(2).parent,'Name','PGR at different Child grain threshold values');
 % the misorientation between the different variants is oftentimes quite low
 % which means that grain reconstruction with too large threshold values 
 % merges grains that belong to different variants and thereby complicate
-% the PGR. For this example, 2\textdegree seems to be the optimum, so we
+% the PGR. For this example, 2° seems to be the optimum, so we
 % will move forward with that parameter.
 
 %% Optimizing the orientation relationship (OR)
@@ -208,8 +194,8 @@ ORnames = ["KS","NW","GT","Fitted"];
 
 %Prepare plotting
 figure;
-f(3) = newMtexFigure('layout',[2,2]);
-fh = figure;
+f(3) = newMtexFigure('layout',[2,2],'Name','OR-Fit grain boundary plot');
+fh = figure('Name','OR-Fit histogram');
 
 % loop over different ORs
 for ii = 1:length(ORs)
@@ -242,14 +228,10 @@ for ii = 1:length(ORs)
   title(ORnames(ii));
   
   % Enable multiplot
-  if ii < length(ORs)
-    figure(f(3).parent); nextAxis;
-  end
+  if ii < length(ORs), figure(f(3).parent); nextAxis; end
 end
 
 % Adding labels and titles
-set(f(3).parent,'Name','OR-Fit grain boundary plot');
-set(fh,'Name','OR-Fit histogram');
 figure(fh);
 grid on
 legend(ORnames);
@@ -280,8 +262,8 @@ quantile = [0.9,0.8,0.9,0.8];
 
 % Prepare plotting
 figure;
-f(4) = newMtexFigure('layout',[2,2]);
-fh2 = figure;
+f(4) = newMtexFigure('layout',[2,2],'Name','OR-Fit grain boundary plot');
+fh2 = figure('Name','OR-Fit histogram');
 
 % loop over different parameter sets 
 for ii = 1:length(threshold)
@@ -323,24 +305,21 @@ for ii = 1:length(threshold)
   end
 end
 
-% Adding labels and titles
-set(f(4).parent,'Name','OR-Fit grain boundary plot');
-set(fh2,'Name','OR-Fit histogram');
+% Adding labels
 figure(fh2);
 grid on
 xlim([0,10])
 legend(append("Thresh.: ",string(threshold),", Quantile: ",string(quantile)));
 
 %%
-% We only look at the 0 - 10 \textdegree misfit range to better discern the
-% effect of the different parameter sets. 
-% The parameter choice of the |calcParent2Child| command did not cause
-% drastic changes in the fit of the optimal OR. Threshold values of 
-% 10\textdegree gave a better fit than 5\textdegree, and a quantile
-% value of 0.9 may be slightly better than 0.8. The threshold angle of 
-% 10\textdegree and the |quantile| of 0.9 are the default values of the
-% |calcParent2Child| command. For your dataset, the quantile value should
-% reflect the ratio between prior parent boundaries and OR-related
+% We only look at the 0° - 10° misfit range to better discern the effect of
+% the different parameter sets. The parameter choice of the
+% |calcParent2Child| command did not cause drastic changes in the fit of
+% the optimal OR. Threshold values of 10° gave a better fit than 5°, and a
+% quantile value of 0.9 may be slightly better than 0.8. The threshold
+% angle of 10° and the |quantile| of 0.9 are the default values
+% of the |calcParent2Child| command. For your dataset, the quantile value
+% should reflect the ratio between prior parent boundaries and OR-related
 % boundaries. In the present case prior austenite grains are large and
 % filled with a very fine OR-related boundary structure within, meaning
 % that the quantile value does not play a big role. If you have small prior
@@ -370,7 +349,7 @@ job.calcParent2Child;
 % Plot the misfit histogram 
 % (|pdf| normalization was chosen to plot the misfit distribution and 
 % probability function with reference to the same y-axis)
-figure;
+figure('Name','OR-probability functions')
 hold on
 h = histogram(fit./degree,'BinMethod','sqrt','normalization','pdf',...
   'FaceAlpha',0.3,'DisplayName',"OR misfit distribution");
@@ -401,7 +380,6 @@ end
 grid on;
 legend("Interpreter","tex");
 xlim([0,maxX])
-set(gcf,'Name','OR-probability functions');
 
 %%
 % It can be observed that the different parameter choices for |threshold|
@@ -418,7 +396,7 @@ set(gcf,'Name','OR-probability functions');
 
 %Prepare plotting
 figure;
-f(5) = newMtexFigure('layout',[2,2]);
+f(5) = newMtexFigure('layout',[2,2],'Name','OR-probability grain boundary plot');
 
 %Loop over probability function parameters
 for ii = 1:length(tol)
@@ -438,9 +416,6 @@ for ii = 1:length(tol)
     figure(f(5).parent); nextAxis;
   end
 end
-
-% Let us rename the figure
-set(f(5).parent,'Name','OR-probability grain boundary plot');
 
 %%
 % We can see that a sharp tolerance of 1.5 and threshold value of 1.5 mark
@@ -464,7 +439,7 @@ set(f(5).parent,'Name','OR-probability grain boundary plot');
 
 %Prepare plotting
 figure;
-f(6) = newMtexFigure('layout',[2,2]);
+f(6) = newMtexFigure('layout',[2,2],'Name','PGR results for different OR-probability functions');
 
 %Loop over probability function parameters
 for ii = 1:length(tol)
@@ -492,9 +467,6 @@ for ii = 1:length(tol)
   job.revert;
 end
 
-% Let us rename the figure
-set(f(6).parent,'Name','PGR results for different OR-probability functions');
-
 %%
 % We can observe that in the case where the probability function did not 
 % lead to a good separation between prior-parent and OR-related boundaries
@@ -511,17 +483,16 @@ set(f(6).parent,'Name','PGR results for different OR-probability functions');
 % explored. The variant graph relies on a Markovian clustering algorithm,
 % which is originally reported in 
 %
-% \textit{[van Dongen, Stijn, 
-% Graph clustering via a discrete uncoupling process, 
-% Siam Journal on Matrix Analysis and Applications 30-1, 
-% p121-141, 2008. ( https://doi.org/10.1137/040608635 )]}
+% <https://doi.org/10.1137/040608635 van Dongen, Stijn, Graph clustering
+% via a discrete uncoupling process, Siam Journal on Matrix Analysis and
+% Applications 30-1, p121-141, 2008>.
 %
 % and defined in the present application in
 %
-% \textit{[R. Hielscher, T. Nyyssönen, F. Niessen, A.A. Gazder, 
-% The variant graph approach to improved parent grain reconstruction, 
-% Materialia 22 (2022) 101399.
-% https://doi.org/10.1016/j.mtla.2022.101399.]}
+% <https://doi.org/10.1016/j.mtla.2022.101399 R. Hielscher, T. Nyyssönen,
+% F. Niessen, A.A. Gazder, The variant graph approach to improved parent
+% grain reconstruction, Materialia 22 (2022) 101399>.
+% 
 %
 % When iteratively applying the Markovian clustering algorithm to the 
 % variant graph, edges with high probability are further strengthened and 
@@ -546,7 +517,7 @@ numIter = [5,5,5,10,10,10];
 
 %Prepare plotting
 figure;
-f(7) = newMtexFigure('layout',[2,3]);
+f(7) = newMtexFigure('layout',[2,3],'Name','PGR results for different clustering parameters');
 
 % setup the variant graph
 job.calcVariantGraph('threshold',2.5*degree,'tolerance',2.5*degree)
@@ -557,7 +528,7 @@ for ii = 1:length(alpha)
   job.clusterVariantGraph('inflationPower',alpha(ii),'numIter',numIter(ii));
   
   % calculate the parent grain orientations
-  job.calcParentFromVote('minProb',0.5)
+  job.calcParentFromVote('minProb',0.5);
   
   % Plot the PGR result (before any cleaning is applied)
   plot(job.parentGrains,job.parentGrains.meanOrientation);
@@ -572,15 +543,12 @@ for ii = 1:length(alpha)
   job.revert;
 end
 
-% Let us rename the figure
-set(f(7).parent,'Name','PGR results for different clustering parameters');
-
 %%
 % It may not be entirely possible to judge the quality of the PGR with
 % having access to a validation dataset (i.e. without knowing the actual
 % parent microstructure), nevertheless some observations can be made: An
 % inflation parameter of 1.2 seems to be too high, leading to large patches
-% of material that have not been reconstructed. A good inidicator for the
+% of material that have not been reconstructed. A good indicator for the
 % present microstructure is to check in how far likely annealing twins have
 % been resolved with a realistic morphology and how very small parent
 % grains may become present that are unlikely to be associated with real
@@ -612,7 +580,7 @@ job.calcParentFromVote('minProb',0.5);
 
 % Plot the PGR result (before any cleaning is applied)
 figure;
-f(8) = newMtexFigure('layout',[2,2]);
+f(8) = newMtexFigure('layout',[2,2],'Name','Final PGR with cleaning procedure');
 plot(job.parentGrains,job.parentGrains.meanOrientation);
 title("Initial Variant Graph PGR")
 nextAxis;
@@ -623,7 +591,7 @@ nextAxis;
 % Calculate new Votes for all parent-child grain combinations. Iterate a
 % few times
 for ii = 1:5
-  job.calcGBVotes('p2c','reconsiderAll')
+  job.calcGBVotes('p2c','reconsiderAll');
   job.calcParentFromVote('minProb',0.5);
 end
 
@@ -634,7 +602,7 @@ nextAxis;
 
 % *** Merge neighboring grains with low parent grain misorientation
 
-% Merge neighboring parent grains that have <= 7.5\textdegree
+% Merge neighboring parent grains that have <= 7.5°
 % misorientation angle to each other
 job.mergeSimilar('threshold',7.5*degree);
 
@@ -652,9 +620,6 @@ job.mergeInclusions('maxSize',100);
 plot(job.parentGrains,job.parentGrains.meanOrientation);
 title("+ removing small inclusions")
 
-% Let us rename the figure
-set(gcf,'Name','Final PGR with cleaning procedure');
-
 %%
 % We are now finished with the PGR and can as a last step plot the child 
 % and reconstructed parent EBSD data overlayed with the outlines of the 
@@ -662,7 +627,7 @@ set(gcf,'Name','Final PGR with cleaning procedure');
 
 % Prepare plotting
 figure;
-f(8) = newMtexFigure('layout',[2,1]);
+f(8) = newMtexFigure('layout',[1,2]);
 
 % Plot the initial orientation data with the prior parent grain outlines
 plot(job.ebsdPrior,job.ebsdPrior.orientations);

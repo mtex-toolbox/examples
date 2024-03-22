@@ -16,7 +16,8 @@ setMTEXpref('xAxisDirection','east');
 setMTEXpref('zAxisDirection','intoPlane');
 
 % import data
-ebsd = EBSD.load('K1_C_16_EBSD_original_bc.txt',...
+path = [mtexExamplePath filesep 'PlasticityExamples' filesep ];
+ebsd = EBSD.load([path 'K1_C_16_EBSD_original_bc.txt'],...
   {'notIndexed',cs,'notIndexed'},'interface','csv','silent');
 
 % rotate the data in the right reference frame
