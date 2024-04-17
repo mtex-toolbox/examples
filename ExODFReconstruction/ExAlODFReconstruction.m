@@ -1,10 +1,15 @@
-%% ODF Reconstruction from XRD Data of an Al Alloy Rolled Sheet
+%% ODF Reconstruction from X-Ray Diffraction Data of an Al Alloy Rolled Sheet
 %
 %
 %% Import the Data
 %
 % The following pole figure intensities have been measured by a Philips
-% X'Pert diffractometer. Lets import the raw data
+% X'Pert diffractometer using Cu-Kalpha radiation. The sample comes from
+% a commercial aluminum alloy (AA6061-T4) sheet of 0.9 mm thickness.
+% Scans were done over the RD-TD plane of the sheet (RD//X; TD//Y; ND//Z).
+% The tree main FCC poles for XRD were scanned, i.e., {1 1 1}, {2 0 0}, {2 2 0}.
+
+% Lets import the raw data
 
 % crystal symmetry
 CS = crystalSymmetry('m-3m', [1 1 1],'mineral','Al');
@@ -39,8 +44,8 @@ S2G = regularS2Grid('points', [1,18], 'antipodal');
 % Lets store these intensities in variables of type
 % <PoleFigure.PoleFigure.html |PoleFigure|>.
 
-mtt = 2;    % time per measurement point
-mtb = 30;   % time for a full circle
+mtt = 2;    % time per measurement point of each PF scan
+mtb = 30;   % time for the full circle (azimutal angle) of defocusing scan
 
 % create background and defocusing pole figures
 pf_bg = PoleFigure(h, S2G, y, CS);
@@ -76,3 +81,9 @@ solver = MLSSolver(pf,'halfwidth',5*degree,'resolution',2.5*degree,...
 odf = solver.calcODF; 
 
 plotPDF(odf, h, 'minmax')
+
+% This texture shows the typically dominant 'cube' orientation due to
+% recrystallization after rolling of Al alloy plates and sheets.
+% There's a slight misalignment of the sample's orthotropy axes wrt the
+% X-Y directions. This is due to a small deviation of the sample when
+% positioned on the goniometer of the X-ray diffractometer.
