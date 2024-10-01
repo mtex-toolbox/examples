@@ -1,0 +1,742 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      -->
+<title>example_WCCo</title>
+<meta name="generator" content="MATLAB 24.1">
+<link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
+<meta name="DC.date" content="2024-10-01">
+<meta name="DC.source" content="example_WCCo.m">
+<style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; }
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+span.typesection { color:#A0522D }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style>
+</head>
+<body>
+<div class="content">
+<h2>Contents</h2>
+<div>
+<ul>
+<li>
+<a href="#1">MTEX TrueEBSD for WC Contiguity calculation</a>
+</li>
+<li>
+<a href="#2">Add trueEBSD related MATLAB paths</a>
+</li>
+<li>
+<a href="#3">Data Import</a>
+</li>
+<li>
+<a href="#4">Set up TrueEBSD job</a>
+</li>
+<li>
+<a href="#6">Resize images to match pixel size and FOV</a>
+</li>
+<li>
+<a href="#8">[Optional] Change cross-correlation function (XCF) ROI settings</a>
+</li>
+<li>
+<a href="#9">Calculate local image shifts and fit to a distortion model</a>
+</li>
+<li>
+<a href="#11">Compute image shifts</a>
+</li>
+<li>
+<a href="#12">Undistort images</a>
+</li>
+<li>
+<a href="#14">Plot data as MTEX EBSD maps</a>
+</li>
+<li>
+<a href="#15">Finish</a>
+</li>
+</ul>
+</div>
+<h2 id="1">MTEX TrueEBSD for WC Contiguity calculation</h2>
+<p>authors: Vivian Tong, National Physical Laboratory, Teddington, UK; Stefan Olovsj&ouml;, Seco Tools AB, R&amp;D Materials and Technology, 737 82 Fagersta, Sweden; Contact: <a href="mailto:vivian.tong@npl.co.uk">vivian.tong@npl.co.uk</a>
+</p>
+<p>Description: Example script to run trueEBSD workflow MATLAB R2024a and mtex version forked from feature/grain3d, approx mtex6.0.beta3</p>
+<p>Inputs: mtexdata trueEbsdWCCo</p>
+<p>Outputs: Published html file containing code and outputs</p>
+<p>Version control 20241001 - create TrueEBSD example script using data from SECOvisit_020_1_site1</p>
+<pre class="codeinput">clear; close <span class="string">all</span>; home;
+
+<span class="comment">% TrueEBSD version ID</span>
+vId = <span class="string">'20240916 / app version 1.2.1'</span>;
+</pre>
+<h2 id="2">Add trueEBSD related MATLAB paths</h2>
+<pre class="codeinput">addpath(genpath(cd));
+</pre>
+<h2 id="3">Data Import</h2>
+<p>Begin by loading an EBSD map with a list of images we want to use together with the EBSD map data. This contains an EBSD map of a WC-Co composite acquired at 20 kV accelerating voltage, and four images of the same sample area within ebsd.opt.trueEbsdImgs:</p>
+<pre>- fsdB3 is a colour image from the three FSD detectors mounted at
+the bottom of the EBSD camera, and the EBSD camera is retracted by 20 mm
+relative to the EBSD map acquisitiion position;</pre>
+<pre>- fsdT3 is a greyscale image from the same beam scan as fsdB3 and
+the FSD detectors at the top of the EBSD camera;</pre>
+<pre>- fsdT1 is a greyscale image from the FSD detectors at the top of the
+EBSD camera at the EBSD map acquisitiion position;</pre>
+<pre>- fsdT10 is a greyscale image from the FSD detectors at the top of the
+EBSD camera, in EBSD map acquisitiion position, and the electron beam
+accelerating voltage lowered to 10 kV.</pre>
+<pre>- ebsd.opt.trueEbsdImgs.pixSzImg is the image pixel size in microns for
+all four images.</pre>
+<pre class="codeinput">tic
+mtexdata <span class="string">trueEbsdWCCo</span>
+
+display(ebsd);
+display(ebsd.opt.trueEbsdImgs);
+</pre>
+<pre class="codeoutput"> 
+ebsd = EBSDsquare
+ 
+ Phase  Orientations     Mineral         Color  Symmetry  Crystal reference frame
+     0  6657 (0.85%)  notIndexed                                                 
+     1  714592 (91%)         W C  LightSkyBlue      -6m2        X||a*, Y||b, Z||c
+     2    62791 (8%)      Co-fcc  DarkSeaGreen      m-3m                         
+     3   2392 (0.3%)      Co-hcp     Goldenrod     6/mmm        X||a*, Y||b, Z||c
+ 
+ Properties: bc, bs, bands, MAD, quality, oldId
+ Scan unit : um
+ Grid size (square): 768 x 1024
+ Header: &lt;a href="matlab:dispStruct(pullTemp(1))"&gt;show struct&lt;/a&gt;
+ Images: &lt;a href="matlab:dispStruct(pullTemp(2))"&gt;show struct&lt;/a&gt;
+ trueEbsdImgs: &lt;a href="matlab:dispStruct(pullTemp(3))"&gt;show struct&lt;/a&gt;
+ 
+ 
+ebsd = EBSDsquare
+ 
+ Phase  Orientations     Mineral         Color  Symmetry  Crystal reference frame
+     0  6657 (0.85%)  notIndexed                                                 
+     1  714592 (91%)         W C  LightSkyBlue      -6m2        X||a*, Y||b, Z||c
+     2    62791 (8%)      Co-fcc  DarkSeaGreen      m-3m                         
+     3   2392 (0.3%)      Co-hcp     Goldenrod     6/mmm        X||a*, Y||b, Z||c
+ 
+ Properties: bc, bs, bands, MAD, quality, oldId
+ Scan unit : um
+ Grid size (square): 768 x 1024
+ Header: &lt;a href="matlab:dispStruct(pullTemp(4))"&gt;show struct&lt;/a&gt;
+ Images: &lt;a href="matlab:dispStruct(pullTemp(5))"&gt;show struct&lt;/a&gt;
+ trueEbsdImgs: &lt;a href="matlab:dispStruct(pullTemp(6))"&gt;show struct&lt;/a&gt;
+ 
+  struct with fields:
+
+       fsdB3: [1536&times;2048&times;3 double]
+       fsdT3: [1536&times;2048 double]
+       fsdT1: [1536&times;2048 double]
+      fsdT10: [1536&times;2048 double]
+    pixSzImg: 0.0199
+
+</pre>
+<h2 id="4">Set up TrueEBSD job</h2>
+<p>@distortedImg imgList{:} is a TrueEBSD class containing information about an image or EBSD map and its distortion types within the TrueEBSD workflow.</p>
+<p>job is a @trueEbsd object containing a sequence of @distortedImg images.</p>
+<pre class="codeinput">
+<span class="comment">% Construct distortedImg list and set up trueEBSD job</span>
+dataName = <span class="string">'trueEbsdWCCo'</span>;
+
+<span class="comment">% Do some simple image denoising</span>
+ebsd.opt.trueEbsdImgs.fsdB3 = rescale(imboxfilt(ebsd.opt.trueEbsdImgs.fsdB3,3));
+ebsd.opt.trueEbsdImgs.fsdT3 = rescale(imboxfilt(ebsd.opt.trueEbsdImgs.fsdT3,3));
+ebsd.opt.trueEbsdImgs.fsdT1 = rescale(imboxfilt(ebsd.opt.trueEbsdImgs.fsdT1,3));
+ebsd.opt.trueEbsdImgs.fsdT10 = rescale(imboxfilt(ebsd.opt.trueEbsdImgs.fsdT10,3));
+
+<span class="comment">% Construct @distortedImg imgList{:}</span>
+imgList=cell(1,5);
+imgList{1} = distortedImg(<span class="string">'bc'</span>,<span class="string">'drift-shift'</span>, ebsd, <span class="string">'mapplottingConvention'</span>, ebsd.plottingConvention, <span class="string">'highContrast'</span>,1,<span class="string">'edgePadWidth'</span>,3);
+imgList{2} = distortedImg(ebsd.opt.trueEbsdImgs.fsdB3,<span class="string">'true'</span>, <span class="string">'dxy'</span>, ebsd.opt.trueEbsdImgs.pixSzImg, <span class="string">'highContrast'</span>,1,<span class="string">'edgePadWidth'</span>,5);
+imgList{3} = distortedImg(ebsd.opt.trueEbsdImgs.fsdT3,<span class="string">'shift'</span>, <span class="string">'dxy'</span>, ebsd.opt.trueEbsdImgs.pixSzImg, <span class="string">'highContrast'</span>,1,<span class="string">'edgePadWidth'</span>,5);
+imgList{4} = distortedImg(ebsd.opt.trueEbsdImgs.fsdT1,<span class="string">'tilt'</span>, <span class="string">'dxy'</span>, ebsd.opt.trueEbsdImgs.pixSzImg, <span class="string">'highContrast'</span>,1,<span class="string">'edgePadWidth'</span>,5);
+imgList{5} = distortedImg(ebsd.opt.trueEbsdImgs.fsdT10,<span class="string">'true'</span>, <span class="string">'dxy'</span>, ebsd.opt.trueEbsdImgs.pixSzImg, <span class="string">'highContrast'</span>,1,<span class="string">'edgePadWidth'</span>,3);
+
+<span class="comment">% @trueEbsd job is a TrueEBSD class.</span>
+<span class="comment">% The starting data for the TrueEBSD workflow are stored in job.imgList.</span>
+job = trueEbsd(imgList{:});
+</pre>
+<p>Plot as-imported image sequence to check they are all of similar regions on the sample, but the image contrasts look quite different.</p>
+<pre class="codeinput">figure(<span class="string">'WindowState'</span>, <span class="string">'maximized'</span>);
+t=tiledlayout(<span class="string">'flow'</span>,<span class="string">'TileSpacing'</span>,<span class="string">'tight'</span>,<span class="string">'Padding'</span>,<span class="string">'tight'</span>);
+title(t,<span class="string">'TrueEBSD starting image sequence'</span>);
+<span class="keyword">for</span> n=1:numel(imgList)
+    nexttile;
+    imagesc(<span class="string">'XData'</span>,imgList{n}.dx.*(1:size(imgList{n}.img,2)),<span class="keyword">...</span>
+        <span class="string">'YData'</span>,imgList{n}.dy*(1:size(imgList{n}.img,1)),<span class="keyword">...</span>
+        <span class="string">'CData'</span>,imgList{n}.img);
+    colormap <span class="string">gray</span>; axis <span class="string">image</span> <span class="string">on</span> <span class="string">ij</span>;
+<span class="keyword">end</span>
+linkaxes;
+
+t1  = toc;
+disp([<span class="string">'Finished set up trueEBSD job for '</span> dataName <span class="string">' in '</span> num2str(t1,<span class="string">'%.1f'</span>) <span class="string">' seconds'</span>]);
+</pre>
+<pre class="codeoutput">Finished set up trueEBSD job for trueEbsdWCCo in 10.0 seconds
+</pre>
+<img vspace="5" hspace="5" src="example_WCCo_01.png" alt=""> <h2 id="6">Resize images to match pixel size and FOV</h2>
+<p>The EBSD map and images in job.imgList{:} are of the same sample area but have different pixel sizes. Here, we match up the pixel positions of the the image sequence in job.imgList{:}.</p>
+<p>Inputs - distorted image sequence job.imgList{:}, target pixel size pixSzIn</p>
+<p>Outputs - distorted image sequence on a common pixel grid job.resizedList{:}</p>
+<pre class="codeinput">pixSzIn = 0; <span class="comment">% target pixel length in microns, or 0 to default to smallest common pixel size</span>
+job = pixelSizeMatch(job,pixSzIn);
+</pre>
+<pre class="codeoutput">using default pixel size of 0.019875 um, minimum from imgList
+</pre>
+<img vspace="5" hspace="5" src="example_WCCo_02.png" alt=""> <p>Now job has a new property job.resizedList, which is where the outputs of pixelSizeMatch are stored.</p>
+<pre class="codeinput">display(job);
+
+t1  = toc;
+disp([<span class="string">'Finished resize images to match pixel size and FOV for '</span> dataName <span class="string">' in '</span> num2str(t1,<span class="string">'%.1f'</span>) <span class="string">' seconds'</span>]);
+</pre>
+<pre class="codeoutput">
+job = 
+
+  trueEbsd with properties:
+
+            imgList: {5&times;1 cell}
+        resizedList: {5&times;1 cell}
+    undistortedList: {[1&times;1 distortedImg]}
+             shifts: {}
+
+Finished resize images to match pixel size and FOV for trueEbsdWCCo in 29.7 seconds
+</pre>
+<h2 id="8">[Optional] Change cross-correlation function (XCF) ROI settings</h2>
+<p>TrueEBSD image registration computes the cross-correlation function (XCF) between pairs of regions of interest (ROI) in sequential images. The ROI size and spacing within each image pair are tunable parameters in TrueEBSD.</p>
+<p>The pixelSizeMatch function automatically guesses some normally sensible parameters for a polycrystal EBSD map, but you can also set custom values. You can define one XCF setting in job.resizedList{n}.setXCF{:} When selecting ROI size, a good rule of thumb is an ROI at least 4 times wider than the measured local image shifts. It also needs to be a power of 2 for the XCF to work properly.</p>
+<p>You can set a custom XCF for each individual distortion model in the distorted image (job.resizedList{n}.distortionModel).</p>
+<p>Here, we deliberately misjudge and choose an ROI box that is too small for the EBSD map job.resizedList{1}, which is used to correct EBSD map drift (linear interpolation between rigid EBSD map rows).</p>
+<pre class="codeinput">customSetXCF1.ROISize=2^round(log2(32));
+customSetXCF1.NumROI=struct;
+customSetXCF1.NumROI.x = 40; <span class="comment">% good rule of thumb: as many ROI as grains in FOV</span>
+customSetXCF1.NumROI.y = round(customSetXCF1.NumROI.x * size(job.resizedList{1}.img,1)/size(job.resizedList{1}.img,2)); <span class="comment">% follow image aspect ratio</span>
+customSetXCF1.XCFMesh=250; <span class="comment">% correlation peak upsampling, default 250</span>
+customSetXCF1.xcfImg = <span class="string">'edge'</span>; <span class="comment">%choose whether to correlate edge transforms or images</span>
+
+customSetXCF2 = customSetXCF1;
+customSetXCF2.ROISize=2^round(log2(128));
+
+<span class="comment">% assign customSetXCF</span>
+job.resizedList{1}.setXCF{2} = customSetXCF1;
+job.resizedList{3}.setXCF{1} = customSetXCF2;
+<span class="comment">% or just rewrite individual properties</span>
+job.resizedList{1}.setXCF{1}.ROISize = 2^round(log2(64));
+job.resizedList{3}.setXCF{1}.xcfImg = <span class="string">'img'</span>;
+job.resizedList{4}.setXCF{1}.xcfImg = <span class="string">'img'</span>;
+job.resizedList{5}.setXCF{1}.xcfImg = <span class="string">'img'</span>;
+</pre>
+<h2 id="9">Calculate local image shifts and fit to a distortion model</h2>
+<p>Now we compute local image ROI shifts and fit them to distortion models. After each image correction step, the average ROI shifts (X, Y and length components) are printed to the command window.</p>
+<p>The 'fitErr' flag means that residual local image shifts are recomputed after image correction but not included in the final result. If this number is small (around 1 pixel or less) then most likely the image registration was successful.</p>
+<p>Just now, we intentionally set the ROI box size too small for the EBSD map drift correction step. Therefore, the average residual shift is &gt; 2 pixels long. calcShifts tries to fix this by doubling the ROI size and retrying the image registration step. It will try to do this until either the ROI are too big to fit into the image, or the residual shifts are &lt; 2 pixels.</p>
+<p>The only exception to this is where the distortion name is 'true', such as between images 3 and 2 in this dataset. For this case,TrueEBSD assumes that all the shifts between this image pair are zeros, and ignores the residual shifts, even if they are greater than 2 pixels.</p>
+<p>These are the image pairs that will be used for cross-correlation.</p>
+<pre class="codeinput">figure(<span class="string">'WindowState'</span>, <span class="string">'maximized'</span>);
+t=tiledlayout(<span class="string">'flow'</span>,<span class="string">'TileSpacing'</span>,<span class="string">'tight'</span>,<span class="string">'Padding'</span>,<span class="string">'tight'</span>);
+title(t,<span class="string">'TrueEBSD image sequence for cross-correlation'</span>);
+<span class="keyword">for</span> n=1:numel(job.resizedList)
+    nexttile;
+    imagesc(<span class="string">'XData'</span>,job.resizedList{n}.dx.*(1:size(job.resizedList{n}.img,2)),<span class="keyword">...</span>
+        <span class="string">'YData'</span>,job.resizedList{n}.dy*(1:size(job.resizedList{n}.img,1)),<span class="keyword">...</span>
+        <span class="string">'CData'</span>,job.resizedList{n}.(job.resizedList{n}.setXCF{1}.xcfImg));
+    colormap <span class="string">gray</span>; axis <span class="string">image</span> <span class="string">on</span> <span class="string">ij</span>;
+<span class="keyword">end</span>
+linkaxes;
+</pre>
+<img vspace="5" hspace="5" src="example_WCCo_03.png" alt=""> <h2 id="11">Compute image shifts</h2>
+<p>Now job has a new property job.shifts, which is where the outputs of calcShifts are stored.</p>
+<pre class="codeinput">job = calcShifts(job,<span class="string">'fitErr'</span>);
+display(job);
+
+
+t1  = toc;
+disp([<span class="string">'Finished calculate image shifts and fit distortion models for '</span> dataName <span class="string">' in '</span> num2str(t1,<span class="string">'%.1f'</span>) <span class="string">' seconds'</span>]);
+</pre>
+<pre class="codeoutput">
+Calculating shifts between images 2 and 1 (drift-shift):
+Mean X-shift length 6.3428 pixels
+Mean Y-shift length 8.5645 pixels
+Mean shift length 11.5494 pixels
+Mean X-shift length 3.1241 pixels
+Mean Y-shift length 3.7409 pixels
+Mean shift length 5.4665 pixels
+Residual shifts / pixels between images 2 and 1 (drift-shift)
+Mean X-shift length 2.9988 pixels
+Mean Y-shift length 3.452 pixels
+Mean shift length 5.1183 pixels
+Residual shifts length was greater than 2 pixels between images 2 and 1 (drift-shift)
+Retrying calculation with double ROI size of 128 pixels for distortionModel 1...
+Retrying calculation with double ROI size of 64 pixels for distortionModel 2...
+
+Calculating shifts between images 2 and 1 (drift-shift):
+Mean X-shift length 6.1232 pixels
+Mean Y-shift length 11.855 pixels
+Mean shift length 14.0975 pixels
+Mean X-shift length 2.0404 pixels
+Mean Y-shift length 4.988 pixels
+Mean shift length 5.8124 pixels
+Residual shifts / pixels between images 2 and 1 (drift-shift)
+Mean X-shift length 1.9054 pixels
+Mean Y-shift length 3.019 pixels
+Mean shift length 3.9496 pixels
+Residual shifts length was greater than 2 pixels between images 2 and 1 (drift-shift)
+Retrying calculation with double ROI size of 256 pixels for distortionModel 1...
+Retrying calculation with double ROI size of 128 pixels for distortionModel 2...
+
+Calculating shifts between images 2 and 1 (drift-shift):
+Mean X-shift length 5.904 pixels
+Mean Y-shift length 11.5778 pixels
+Mean shift length 13.6513 pixels
+Mean X-shift length 0.93305 pixels
+Mean Y-shift length 5.1228 pixels
+Mean shift length 5.3345 pixels
+Residual shifts / pixels between images 2 and 1 (drift-shift)
+Mean X-shift length 0.74979 pixels
+Mean Y-shift length 1.6147 pixels
+Mean shift length 1.9316 pixels
+
+Calculating shifts between images 3 and 2 (true):
+Mean X-shift length 0 pixels
+Mean Y-shift length 0 pixels
+Mean shift length 0 pixels
+Residual shifts / pixels between images 3 and 2 (true)
+Mean X-shift length 0.38823 pixels
+Mean Y-shift length 1.9905 pixels
+Mean shift length 2.0487 pixels
+
+Calculating shifts between images 4 and 3 (shift):
+Mean X-shift length 10.6057 pixels
+Mean Y-shift length 6.7925 pixels
+Mean shift length 12.6342 pixels
+Residual shifts / pixels between images 4 and 3 (shift)
+Mean X-shift length 0.54457 pixels
+Mean Y-shift length 0.63192 pixels
+Mean shift length 0.94546 pixels
+
+Calculating shifts between images 5 and 4 (tilt):
+Mean X-shift length 11.4223 pixels
+Mean Y-shift length 8.7061 pixels
+Mean shift length 14.4863 pixels
+Mean X-shift length 0.29411 pixels
+Mean Y-shift length 0.22396 pixels
+Mean shift length 0.40039 pixels
+Mean X-shift length 0.20574 pixels
+Mean Y-shift length 0.22123 pixels
+Mean shift length 0.32591 pixels
+Residual shifts / pixels between images 5 and 4 (tilt)
+Mean X-shift length 0.20068 pixels
+Mean Y-shift length 0.16554 pixels
+Mean shift length 0.28427 pixels
+
+job = 
+
+  trueEbsd with properties:
+
+            imgList: {5&times;1 cell}
+        resizedList: {5&times;1 cell}
+    undistortedList: {[1&times;1 distortedImg]}
+             shifts: {{1&times;2 cell}  {1&times;1 cell}  {1&times;1 cell}  {1&times;3 cell}}
+
+Finished calculate image shifts and fit distortion models for trueEbsdWCCo in 420.7 seconds
+</pre>
+<img vspace="5" hspace="5" src="example_WCCo_04.png" alt=""> <h2 id="12">Undistort images</h2>
+<p>This applies the image shifts between each image pair in job.shifts to the data in job.resizedList, and outputs a new property job.undistortedList which contains aligned image data. Now all pixels in this image sequence can be directly overlaid.</p>
+<pre class="codeinput">job = undistort(job);
+</pre>
+<p>Plot images after distortion correction</p>
+<pre class="codeinput">figure(<span class="string">'WindowState'</span>, <span class="string">'maximized'</span>);
+t=tiledlayout(<span class="string">'flow'</span>,<span class="string">'TileSpacing'</span>,<span class="string">'tight'</span>,<span class="string">'Padding'</span>,<span class="string">'tight'</span>);
+title(t,<span class="string">'TrueEBSD image sequence after alignment'</span>);
+<span class="keyword">for</span> n=1:numel(job.undistortedList)
+    nexttile;
+    imagesc(<span class="string">'XData'</span>,job.undistortedList{n}.dx.*(1:size(job.undistortedList{n}.img,2)),<span class="keyword">...</span>
+        <span class="string">'YData'</span>,job.undistortedList{n}.dy*(1:size(job.undistortedList{n}.img,1)),<span class="keyword">...</span>
+        <span class="string">'CData'</span>,job.undistortedList{n}.img);
+    colormap <span class="string">gray</span>; axis <span class="string">image</span> <span class="string">on</span> <span class="string">ij</span>;
+<span class="keyword">end</span>
+linkaxes;
+
+t1  = toc;
+disp([<span class="string">'Finished remove image distortions for '</span> dataName <span class="string">' in '</span> num2str(t1,<span class="string">'%.1f'</span>) <span class="string">' seconds'</span>]);
+</pre>
+<pre class="codeoutput">Finished remove image distortions for trueEbsdWCCo in 693.3 seconds
+</pre>
+<img vspace="5" hspace="5" src="example_WCCo_05.png" alt=""> <h2 id="14">Plot data as MTEX EBSD maps</h2>
+<p>We can also plot all images as MTEX EBSD maps. This is a good check to make sure images are not indexed 'upside down' relative to the EBSD map. Since images are usually stored and read by MATLAB using the 'axis ij' convention, but EBSD maps can have other kinds of plotting convention defined in ebsd.plottingConvention, we need the ij2EbsdSquare helper function to rotate the image data into the ebsd map plottingConvention.</p>
+<pre class="codeinput">figure;
+nextAxis;
+plot(job.undistortedList{1}.ebsd(<span class="string">'W C'</span>), job.undistortedList{1}.ebsd(<span class="string">'W C'</span>).orientations, <span class="keyword">...</span>
+    job.undistortedList{1}.ebsd.plottingConvention,<span class="string">'coordinates'</span>,<span class="string">'on'</span>);
+title(<span class="string">'Undistorted MTEX EBSD map (WC IPF-out of screen)'</span>,<span class="string">'Color'</span>,<span class="string">'k'</span>);
+<span class="keyword">for</span> n=1:numel(job.undistortedList)
+    nextAxis;
+    plot(job.undistortedList{1}.ebsd, <span class="keyword">...</span>
+        ij2EbsdSquare(job.undistortedList{1}.ebsd,job.undistortedList{n}.img), <span class="keyword">...</span>
+        job.undistortedList{1}.ebsd.plottingConvention,<span class="string">'coordinates'</span>,<span class="string">'on'</span>);
+    mtexColorMap <span class="string">gray</span>;
+    title([<span class="string">'Undistorted MTEX image '</span> num2str(n)],<span class="string">'Color'</span>,<span class="string">'k'</span>);
+<span class="keyword">end</span>
+</pre>
+<pre class="codeoutput">  I'm going to colorize the orientation data with the 
+  standard MTEX ipf colorkey. To view the colorkey do:
+ 
+  ipfKey = ipfColorKey(ori_variable_name)
+  plot(ipfKey)
+</pre>
+<img vspace="5" hspace="5" src="example_WCCo_06.png" alt=""> <h2 id="15">Finish</h2>
+<p>This is the end of the TrueEBSD distortion correction workflow.</p>
+<p>You can save your data here, or do any further data analysis that you would on normal MTEX EBSD maps.</p>
+<p>For this dataset, we want to measure the contiguity of the WC grains in this EBSD map. That will be covered in the next example script example_WCCo_contiguity.</p>
+<pre class="codeinput">t1  = toc;
+disp([<span class="string">'Finished TrueEBSD workflow for '</span> dataName <span class="string">' in '</span> num2str(t1,<span class="string">'%.1f'</span>) <span class="string">' seconds, exiting program now. '</span>]);
+</pre>
+<pre class="codeoutput">Finished TrueEBSD workflow for trueEbsdWCCo in 749.2 seconds, exiting program now. 
+</pre>
+<p class="footer">
+<br>
+<a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2024a</a>
+<br>
+</p>
+</div>
+<!--
+##### SOURCE BEGIN #####
+%% MTEX TrueEBSD for WC Contiguity calculation
+%
+% authors: Vivian Tong, National Physical Laboratory, Teddington, UK; 
+% Stefan Olovsjö, Seco Tools AB, R&D Materials and Technology, 737 82
+% Fagersta, Sweden;
+% Contact: vivian.tong@npl.co.uk
+%
+% Description:  
+% Example script to run trueEBSD workflow
+% MATLAB R2024a and mtex version forked from feature/grain3d, approx mtex6.0.beta3
+%
+% Inputs:  
+% mtexdata trueEbsdWCCo
+%
+% Outputs: 
+% Published html file containing code and outputs
+%
+% Version control
+% 20241001 - create TrueEBSD example script using data from SECOvisit_020_1_site1
+
+clear; close all; home;
+
+% TrueEBSD version ID 
+vId = '20240916 / app version 1.2.1';
+
+%% Add trueEBSD related MATLAB paths 
+addpath(genpath(cd));
+
+%% Data Import
+% Begin by loading an EBSD map with a list of images we want to use
+% together with the EBSD map data. This contains an EBSD map of a WC-Co 
+% composite acquired at 20 kV accelerating voltage, and four images of 
+% the same sample area within ebsd.opt.trueEbsdImgs: 
+%
+%  - fsdB3 is a colour image from the three FSD detectors mounted at
+%  the bottom of the EBSD camera, and the EBSD camera is retracted by 20 mm
+%  relative to the EBSD map acquisitiion position;
+%
+%  - fsdT3 is a greyscale image from the same beam scan as fsdB3 and 
+%  the FSD detectors at the top of the EBSD camera;
+%
+%  - fsdT1 is a greyscale image from the FSD detectors at the top of the
+% EBSD camera at the EBSD map acquisitiion position;
+%
+%  - fsdT10 is a greyscale image from the FSD detectors at the top of the
+% EBSD camera, in EBSD map acquisitiion position, and the electron beam 
+% accelerating voltage lowered to 10 kV.
+%
+%  - ebsd.opt.trueEbsdImgs.pixSzImg is the image pixel size in microns for
+%  all four images.
+
+tic
+mtexdata trueEbsdWCCo
+
+display(ebsd);
+display(ebsd.opt.trueEbsdImgs);
+
+%% Set up TrueEBSD job
+% @distortedImg imgList{:} is a TrueEBSD class containing information 
+% about an image or EBSD map and its distortion types within the 
+% TrueEBSD workflow.
+%
+% job is a @trueEbsd object containing a sequence of @distortedImg
+% images.
+
+% Construct distortedImg list and set up trueEBSD job
+dataName = 'trueEbsdWCCo';
+
+% Do some simple image denoising
+ebsd.opt.trueEbsdImgs.fsdB3 = rescale(imboxfilt(ebsd.opt.trueEbsdImgs.fsdB3,3));
+ebsd.opt.trueEbsdImgs.fsdT3 = rescale(imboxfilt(ebsd.opt.trueEbsdImgs.fsdT3,3));
+ebsd.opt.trueEbsdImgs.fsdT1 = rescale(imboxfilt(ebsd.opt.trueEbsdImgs.fsdT1,3));
+ebsd.opt.trueEbsdImgs.fsdT10 = rescale(imboxfilt(ebsd.opt.trueEbsdImgs.fsdT10,3));
+
+% Construct @distortedImg imgList{:} 
+imgList=cell(1,5);
+imgList{1} = distortedImg('bc','drift-shift', ebsd, 'mapplottingConvention', ebsd.plottingConvention, 'highContrast',1,'edgePadWidth',3);
+imgList{2} = distortedImg(ebsd.opt.trueEbsdImgs.fsdB3,'true', 'dxy', ebsd.opt.trueEbsdImgs.pixSzImg, 'highContrast',1,'edgePadWidth',5);
+imgList{3} = distortedImg(ebsd.opt.trueEbsdImgs.fsdT3,'shift', 'dxy', ebsd.opt.trueEbsdImgs.pixSzImg, 'highContrast',1,'edgePadWidth',5);
+imgList{4} = distortedImg(ebsd.opt.trueEbsdImgs.fsdT1,'tilt', 'dxy', ebsd.opt.trueEbsdImgs.pixSzImg, 'highContrast',1,'edgePadWidth',5);
+imgList{5} = distortedImg(ebsd.opt.trueEbsdImgs.fsdT10,'true', 'dxy', ebsd.opt.trueEbsdImgs.pixSzImg, 'highContrast',1,'edgePadWidth',3);
+
+% @trueEbsd job is a TrueEBSD class.
+% The starting data for the TrueEBSD workflow are stored in job.imgList.
+job = trueEbsd(imgList{:});
+
+%%
+% Plot as-imported image sequence to check they are all of similar regions
+% on the sample, but the image contrasts look quite different.
+
+figure('WindowState', 'maximized'); 
+t=tiledlayout('flow','TileSpacing','tight','Padding','tight');
+title(t,'TrueEBSD starting image sequence');
+for n=1:numel(imgList)
+    nexttile; 
+    imagesc('XData',imgList{n}.dx.*(1:size(imgList{n}.img,2)),...
+        'YData',imgList{n}.dy*(1:size(imgList{n}.img,1)),...
+        'CData',imgList{n}.img);
+    colormap gray; axis image on ij;
+end
+linkaxes;
+
+t1  = toc;
+disp(['Finished set up trueEBSD job for ' dataName ' in ' num2str(t1,'%.1f') ' seconds']);
+
+%% Resize images to match pixel size and FOV
+% The EBSD map and images in job.imgList{:} are of the same sample area but
+% have different pixel sizes. Here, we match up the pixel positions of the 
+% the image sequence in job.imgList{:}.
+%
+% Inputs - distorted image sequence job.imgList{:}, target pixel size pixSzIn
+%
+% Outputs - distorted image sequence on a common pixel grid job.resizedList{:}
+
+pixSzIn = 0; % target pixel length in microns, or 0 to default to smallest common pixel size
+job = pixelSizeMatch(job,pixSzIn);
+
+%%
+% Now job has a new property job.resizedList, which is where the outputs of
+% pixelSizeMatch are stored.
+display(job);
+
+t1  = toc;
+disp(['Finished resize images to match pixel size and FOV for ' dataName ' in ' num2str(t1,'%.1f') ' seconds']);
+
+%% [Optional] Change cross-correlation function (XCF) ROI settings
+% TrueEBSD image registration computes the cross-correlation function (XCF)
+% between pairs of regions of interest (ROI) in sequential images. The ROI
+% size and spacing within each image pair are tunable parameters in
+% TrueEBSD.
+%
+% The pixelSizeMatch function automatically guesses some normally sensible
+% parameters for a polycrystal EBSD map, but you can also set custom values.
+% You can define one XCF setting in job.resizedList{n}.setXCF{:}
+% When selecting ROI size, a good rule of thumb is an ROI at least 4 times
+% wider than the measured local image shifts. It also needs to be a power of 2
+% for the XCF to work properly. 
+%
+% You can set a custom XCF for each individual distortion model in the distorted
+% image (job.resizedList{n}.distortionModel).
+%
+% Here, we deliberately misjudge and choose an ROI box that is too small
+% for the EBSD map job.resizedList{1}, which is used to correct EBSD map drift
+% (linear interpolation between rigid EBSD map rows).
+
+customSetXCF1.ROISize=2^round(log2(32));
+customSetXCF1.NumROI=struct;
+customSetXCF1.NumROI.x = 40; % good rule of thumb: as many ROI as grains in FOV
+customSetXCF1.NumROI.y = round(customSetXCF1.NumROI.x * size(job.resizedList{1}.img,1)/size(job.resizedList{1}.img,2)); % follow image aspect ratio
+customSetXCF1.XCFMesh=250; % correlation peak upsampling, default 250
+customSetXCF1.xcfImg = 'edge'; %choose whether to correlate edge transforms or images
+
+customSetXCF2 = customSetXCF1;
+customSetXCF2.ROISize=2^round(log2(128));
+
+% assign customSetXCF
+job.resizedList{1}.setXCF{2} = customSetXCF1;
+job.resizedList{3}.setXCF{1} = customSetXCF2;
+% or just rewrite individual properties
+job.resizedList{1}.setXCF{1}.ROISize = 2^round(log2(64));
+job.resizedList{3}.setXCF{1}.xcfImg = 'img';
+job.resizedList{4}.setXCF{1}.xcfImg = 'img';
+job.resizedList{5}.setXCF{1}.xcfImg = 'img';
+
+
+
+%% Calculate local image shifts and fit to a distortion model
+% Now we compute local image ROI shifts and fit them to distortion models. 
+% After each image correction step, the average ROI shifts (X, Y and length
+% components) are printed to the command window. 
+%
+% The 'fitErr' flag means that residual local image shifts are recomputed 
+% after image correction but not included in the final result. If this
+% number is small (around 1 pixel or less) then most likely the image 
+% registration was successful. 
+%
+% Just now, we intentionally set the ROI box size too small for the EBSD
+% map drift correction step. Therefore, the average residual shift is > 2
+% pixels long. calcShifts tries to fix this by doubling the ROI size and
+% retrying the image registration step. It will try to do this until either
+% the ROI are too big to fit into the image, or the residual shifts are < 2
+% pixels.
+%
+% The only exception to this is where the distortion name is 'true', such
+% as between images 3 and 2 in this dataset. For this case,TrueEBSD assumes 
+% that all the shifts between this image pair are zeros, and ignores the
+% residual shifts, even if they are greater than 2 pixels.
+%%
+% These are the image pairs that will be used for cross-correlation. 
+figure('WindowState', 'maximized'); 
+t=tiledlayout('flow','TileSpacing','tight','Padding','tight');
+title(t,'TrueEBSD image sequence for cross-correlation');
+for n=1:numel(job.resizedList)
+    nexttile; 
+    imagesc('XData',job.resizedList{n}.dx.*(1:size(job.resizedList{n}.img,2)),...
+        'YData',job.resizedList{n}.dy*(1:size(job.resizedList{n}.img,1)),...
+        'CData',job.resizedList{n}.(job.resizedList{n}.setXCF{1}.xcfImg));
+    colormap gray; axis image on ij;
+end
+linkaxes;
+
+%% Compute image shifts
+% Now job has a new property job.shifts, which is where the outputs of
+% calcShifts are stored.
+
+job = calcShifts(job,'fitErr');
+display(job);
+
+
+t1  = toc;
+disp(['Finished calculate image shifts and fit distortion models for ' dataName ' in ' num2str(t1,'%.1f') ' seconds']);
+
+%% Undistort images
+% This applies the image shifts between each image pair in job.shifts to
+% the data in job.resizedList, and outputs a new property
+% job.undistortedList which contains aligned image data. Now all pixels in
+% this image sequence can be directly overlaid.
+
+job = undistort(job);
+
+%%
+% Plot images after distortion correction
+
+figure('WindowState', 'maximized'); 
+t=tiledlayout('flow','TileSpacing','tight','Padding','tight');
+title(t,'TrueEBSD image sequence after alignment');
+for n=1:numel(job.undistortedList)
+    nexttile; 
+    imagesc('XData',job.undistortedList{n}.dx.*(1:size(job.undistortedList{n}.img,2)),...
+        'YData',job.undistortedList{n}.dy*(1:size(job.undistortedList{n}.img,1)),...
+        'CData',job.undistortedList{n}.img);
+    colormap gray; axis image on ij;
+end
+linkaxes;
+
+t1  = toc;
+disp(['Finished remove image distortions for ' dataName ' in ' num2str(t1,'%.1f') ' seconds']);
+
+
+%% Plot data as MTEX EBSD maps
+% We can also plot all images as MTEX EBSD maps. This is a good check to
+% make sure images are not indexed 'upside down' relative to the EBSD map.
+% Since images are usually stored and read by MATLAB using the 'axis ij'
+% convention, but EBSD maps can have other kinds of plotting convention defined
+% in ebsd.plottingConvention, we need the ij2EbsdSquare helper function to
+% rotate the image data into the ebsd map plottingConvention.
+
+figure;
+nextAxis;
+plot(job.undistortedList{1}.ebsd('W C'), job.undistortedList{1}.ebsd('W C').orientations, ...
+    job.undistortedList{1}.ebsd.plottingConvention,'coordinates','on');
+title('Undistorted MTEX EBSD map (WC IPF-out of screen)','Color','k');
+for n=1:numel(job.undistortedList)
+    nextAxis;
+    plot(job.undistortedList{1}.ebsd, ...
+        ij2EbsdSquare(job.undistortedList{1}.ebsd,job.undistortedList{n}.img), ...
+        job.undistortedList{1}.ebsd.plottingConvention,'coordinates','on');
+    mtexColorMap gray;
+    title(['Undistorted MTEX image ' num2str(n)],'Color','k');
+end
+
+
+%% Finish
+% This is the end of the TrueEBSD distortion correction workflow. 
+% 
+% You can save your data here, or do any further data analysis that you
+% would on normal MTEX EBSD maps.
+% 
+% For this dataset, we want to measure the contiguity of the WC grains in
+% this EBSD map. That will be covered in the next example script
+% example_WCCo_contiguity.
+
+t1  = toc;
+disp(['Finished TrueEBSD workflow for ' dataName ' in ' num2str(t1,'%.1f') ' seconds, exiting program now. ']);
+
+
+
+##### SOURCE END #####
+-->
+</body>
+</html>
