@@ -29,25 +29,27 @@ addpath(genpath(cd));
 %% Data Import
 % Begin by loading an EBSD map with a list of images we want to use
 % together with the EBSD map data. This contains an EBSD map of a WC-Co 
-% composite acquired at 20 kV accelerating voltage, and four images of 
+% composite acquired at 20 kV accelerating voltage, and four SEM images of 
 % the same sample area within ebsd.opt.trueEbsdImgs: 
 %
-%  - fsdB3 is a colour image from the three FSD detectors mounted at
-%  the bottom of the EBSD camera, and the EBSD camera is retracted by 20 mm
-%  relative to the EBSD map acquisitiion position;
+% # Band contrast (|ebsd.bc|) is used as the image for the EBSD map.
 %
-%  - fsdT3 is a greyscale image from the same beam scan as fsdB3 and 
-%  the FSD detectors at the top of the EBSD camera;
+% # |fsdB3| is a colour image from the three FSD detectors mounted at
+% the bottom of the EBSD camera, and the EBSD camera is retracted by 20 mm
+% relative to the EBSD map acquisitiion position;
 %
-%  - fsdT1 is a greyscale image from the FSD detectors at the top of the
+% # |fsdT3| is a greyscale image from the same beam scan as fsdB3 and 
+% the FSD detectors at the top of the EBSD camera;
+%
+% # |fsdT1| is a greyscale image from the FSD detectors at the top of the
 % EBSD camera at the EBSD map acquisitiion position;
 %
-%  - fsdT10 is a greyscale image from the FSD detectors at the top of the
+% # |fsdT10| is a greyscale image from the FSD detectors at the top of the
 % EBSD camera, in EBSD map acquisitiion position, and the electron beam 
 % accelerating voltage lowered to 10 kV.
 %
-%  - ebsd.opt.trueEbsdImgs.pixSzImg is the image pixel size in microns for
-%  all four images.
+% * |ebsd.opt.trueEbsdImgs.pixSzImg| is the image pixel size in microns for
+% all four images.
 
 tic
 mtexdata trueEbsdWCCo
@@ -84,7 +86,7 @@ imgList{5} = distortedImg(ebsd.opt.trueEbsdImgs.fsdT10,'true', 'dxy', ebsd.opt.t
 % The starting data for the TrueEBSD workflow are stored in job.imgList.
 job = trueEbsd(imgList{:});
 
-%%
+%%%
 % Plot as-imported image sequence to check they are all of similar regions
 % on the sample, but the image contrasts look quite different.
 
@@ -115,7 +117,7 @@ disp(['Finished set up trueEBSD job for ' dataName ' in ' num2str(t1,'%.1f') ' s
 pixSzIn = 0; % target pixel length in microns, or 0 to default to smallest common pixel size
 job = pixelSizeMatch(job,pixSzIn);
 
-%%
+%%%
 % Now job has a new property job.resizedList, which is where the outputs of
 % pixelSizeMatch are stored.
 display(job);
@@ -165,6 +167,21 @@ job.resizedList{5}.setXCF{1}.xcfImg = 'img';
 
 
 %% Calculate local image shifts and fit to a distortion model
+%
+% These are the image pairs that will be used for cross-correlation. 
+figure('WindowState', 'maximized'); 
+t=tiledlayout('flow','TileSpacing','tight','Padding','tight');
+title(t,'TrueEBSD image sequence for cross-correlation');
+for n=1:numel(job.resizedList)
+    nexttile; 
+    imagesc('XData',job.resizedList{n}.dx.*(1:size(job.resizedList{n}.img,2)),...
+        'YData',job.resizedList{n}.dy*(1:size(job.resizedList{n}.img,1)),...
+        'CData',job.resizedList{n}.(job.resizedList{n}.setXCF{1}.xcfImg));
+    colormap gray; axis image on ij;
+end
+linkaxes;
+
+%% Compute image shifts
 % Now we compute local image ROI shifts and fit them to distortion models. 
 % After each image correction step, the average ROI shifts (X, Y and length
 % components) are printed to the command window. 
@@ -185,27 +202,15 @@ job.resizedList{5}.setXCF{1}.xcfImg = 'img';
 % as between images 3 and 2 in this dataset. For this case,TrueEBSD assumes 
 % that all the shifts between this image pair are zeros, and ignores the
 % residual shifts, even if they are greater than 2 pixels.
-%%
-% These are the image pairs that will be used for cross-correlation. 
-figure('WindowState', 'maximized'); 
-t=tiledlayout('flow','TileSpacing','tight','Padding','tight');
-title(t,'TrueEBSD image sequence for cross-correlation');
-for n=1:numel(job.resizedList)
-    nexttile; 
-    imagesc('XData',job.resizedList{n}.dx.*(1:size(job.resizedList{n}.img,2)),...
-        'YData',job.resizedList{n}.dy*(1:size(job.resizedList{n}.img,1)),...
-        'CData',job.resizedList{n}.(job.resizedList{n}.setXCF{1}.xcfImg));
-    colormap gray; axis image on ij;
-end
-linkaxes;
 
-%% Compute image shifts
+job = calcShifts(job,'fitErr');
+
+
+%%%
 % Now job has a new property job.shifts, which is where the outputs of
 % calcShifts are stored.
 
-job = calcShifts(job,'fitErr');
 display(job);
-
 
 t1  = toc;
 disp(['Finished calculate image shifts and fit distortion models for ' dataName ' in ' num2str(t1,'%.1f') ' seconds']);
@@ -218,8 +223,7 @@ disp(['Finished calculate image shifts and fit distortion models for ' dataName 
 
 job = undistort(job);
 
-%%
-% Plot images after distortion correction
+%%% Plot images after distortion correction
 
 figure('WindowState', 'maximized'); 
 t=tiledlayout('flow','TileSpacing','tight','Padding','tight');
@@ -237,7 +241,7 @@ t1  = toc;
 disp(['Finished remove image distortions for ' dataName ' in ' num2str(t1,'%.1f') ' seconds']);
 
 
-%% Plot data as MTEX EBSD maps
+%%% Plot data as MTEX EBSD maps
 % We can also plot all images as MTEX EBSD maps. This is a good check to
 % make sure images are not indexed 'upside down' relative to the EBSD map.
 % Since images are usually stored and read by MATLAB using the 'axis ij'
@@ -260,17 +264,21 @@ for n=1:numel(job.undistortedList)
 end
 
 
-%% Finish
+%%% Finish
 % This is the end of the TrueEBSD distortion correction workflow. 
 % 
 % You can save your data here, or do any further data analysis that you
 % would on normal MTEX EBSD maps.
-% 
+
+t1  = toc;
+disp(['Finished TrueEBSD workflow for ' dataName ' in ' num2str(t1,'%.1f') ' seconds.']);
+
+%% Further Analysis
 % For this dataset, we want to measure the contiguity of the WC grains in
 % this EBSD map. That will be covered in the next example script
 % example_WCCo_contiguity.
 
-t1  = toc;
-disp(['Finished TrueEBSD workflow for ' dataName ' in ' num2str(t1,'%.1f') ' seconds, exiting program now. ']);
+
+disp('Exiting program now.');
 
 
