@@ -116,16 +116,31 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <a href="#22">Update EBSD phase assignment according to BSE image</a>
 </li>
 <li>
-<a href="#23">Calculate grains and boundaries</a>
+<a href="#23">%% Calculate void size and shape distributions</a>
 </li>
 <li>
-<a href="#25">Find nearest g.b. per copper void</a>
+<a href="#24">Plot void size histogram</a>
 </li>
 <li>
-<a href="#33">grain boundary statistics using misorientation distribution function</a>
+<a href="#25">Calculate copper grains and boundaries</a>
 </li>
 <li>
-<a href="#34">Plot misorientation distributions</a>
+<a href="#27">Find nearest g.b. per copper void</a>
+</li>
+<li>
+<a href="#31">2. Construct an EBSD map <tt>voidsMapGb</tt> showing the locations of all voids,</a>
+</li>
+<li>
+<a href="#33">3. Find closest g.b. and t.p. to each void</a>
+</li>
+<li>
+<a href="#34">4. Separate out voids on the boundary vs close to the boundary (could be</a>
+</li>
+<li>
+<a href="#35">grain boundary statistics using misorientation distribution function</a>
+</li>
+<li>
+<a href="#36">Plot misorientation distributions</a>
 </li>
 </ul>
 </div>
@@ -195,8 +210,8 @@ ebsd = EBSDsquare
  Properties: x, y, bc, bs, bands, MAD, quality, oldId
  Scan unit : um
  Grid size (square): 547 x 1031
- Header: &lt;a href="matlab:dispStruct(pullTemp(15))"&gt;show struct&lt;/a&gt;
- Images: &lt;a href="matlab:dispStruct(pullTemp(16))"&gt;show struct&lt;/a&gt;
+ Header: &lt;a href="matlab:dispStruct(pullTemp(17))"&gt;show struct&lt;/a&gt;
+ Images: &lt;a href="matlab:dispStruct(pullTemp(18))"&gt;show struct&lt;/a&gt;
  
   struct with fields:
 
@@ -265,7 +280,7 @@ linkaxes;
 t1  = toc;
 disp([<span class="string">'Finished set up trueEBSD job for '</span> dataName <span class="string">' in '</span> num2str(t1,<span class="string">'%.1f'</span>) <span class="string">' seconds'</span>]);
 </pre>
-<pre class="codeoutput">Finished set up trueEBSD job for trueEbsdCopper in 4.6 seconds
+<pre class="codeoutput">Finished set up trueEBSD job for trueEbsdCopper in 5.3 seconds
 </pre>
 <img vspace="5" hspace="5" src="example_copper_01.png" alt=""> <h2 id="9">Resize images to match pixel size and FOV</h2>
 <p>The EBSD map and images in <tt>job.imgList{:}</tt> are of the same sample area but have different pixel sizes. Here, we match up the pixel positions of the the image sequence in <tt>job.imgList{:}</tt>.</p>
@@ -291,9 +306,9 @@ job =
     undistortedList: {[1&times;1 distortedImg]}
              shifts: {}
 
-Finished resize images to match pixel size and FOV for trueEbsdCopper in 16.5 seconds
+Finished resize images to match pixel size and FOV for trueEbsdCopper in 16.8 seconds
 </pre>
-<img vspace="5" hspace="5" src="example_copper_02.png" alt=""> <h2 id="11">Calculate local image shifts and fit to a distortion model</h2>
+<h2 id="11">Calculate local image shifts and fit to a distortion model</h2>
 <p>Now we compute local image ROI shifts and fit them to distortion models. After each image correction step, the average ROI shifts (X, Y and length components) are printed to the command window.</p>
 <p>Images 4 and 3 are the same SEM image filtered using two methods, so there is no distortion between them -- we had set this up in the input data as <tt>job.imgList{1}.distortionName = 'true'</tt>. In this case, TrueEBSD assumes that all the shifts between this image pair are zero and does not compute them from ROI cross-correlation.</p>
 <p>The 'fitErr' flag means that residual local image shifts are recomputed after image correction but not included in the final result. If this number is small (around 1 pixel or less) then most likely the image registration was successful.</p>
@@ -366,9 +381,9 @@ job =
     undistortedList: {[1&times;1 distortedImg]}
              shifts: {{1&times;2 cell}  {1&times;3 cell}  {1&times;1 cell}}
 
-Finished calculate image shifts and fit distortion models for trueEbsdCopper in 284.0 seconds
+Finished calculate image shifts and fit distortion models for trueEbsdCopper in 275.6 seconds
 </pre>
-<img vspace="5" hspace="5" src="example_copper_03.png" alt=""> <h2 id="15">Undistort images</h2>
+<img vspace="5" hspace="5" src="example_copper_02.png" alt=""> <img vspace="5" hspace="5" src="example_copper_03.png" alt=""> <h2 id="15">Undistort images</h2>
 <p>This applies the image shifts between each image pair in <tt>job.shifts</tt> to the data in <tt>job.resizedList</tt>, and outputs a new property job.undistortedList which contains aligned image data. Now all pixels in this image sequence can be directly overlaid.</p>
 <pre class="codeinput">job = undistort(job);
 </pre>
@@ -388,7 +403,9 @@ linkaxes;
 t1  = toc;
 disp([<span class="string">'Finished remove image distortions for '</span> dataName <span class="string">' in '</span> num2str(t1,<span class="string">'%.1f'</span>) <span class="string">' seconds'</span>]);
 </pre>
-<h2 id="17">Plot data as MTEX EBSD maps</h2>
+<pre class="codeoutput">Finished remove image distortions for trueEbsdCopper in 681.5 seconds
+</pre>
+<img vspace="5" hspace="5" src="example_copper_04.png" alt=""> <h2 id="17">Plot data as MTEX EBSD maps</h2>
 <p>We can also plot all images as MTEX EBSD maps. This is a good check to make sure images are not indexed 'upside down' relative to the EBSD map. Since images are usually stored and read by MATLAB using the 'axis ij' convention, but EBSD maps can have other kinds of plotting convention defined in ebsd.plottingConvention, we need the ij2EbsdSquare helper function to rotate the image data into the ebsd map plottingConvention.</p>
 <pre class="codeinput">figure;
 nextAxis;
@@ -404,35 +421,35 @@ title(<span class="string">'Undistorted MTEX EBSD map (Copper IPF-out of screen)
     title([<span class="string">'Undistorted MTEX image '</span> num2str(n)],<span class="string">'Color'</span>,<span class="string">'k'</span>);
 <span class="keyword">end</span>
 </pre>
-<p>This is the end of the TrueEBSD distortion correction workflow.</p>
-<pre class="codeinput">t1  = toc;
-disp([<span class="string">'Finished TrueEBSD workflow for '</span> dataName <span class="string">' in '</span> num2str(t1,<span class="string">'%.1f'</span>) <span class="string">' seconds.'</span>]);
-</pre>
-<pre class="codeoutput">Finished remove image distortions for trueEbsdCopper in 711.5 seconds
-  I'm going to colorize the orientation data with the 
+<pre class="codeoutput">  I'm going to colorize the orientation data with the 
   standard MTEX ipf colorkey. To view the colorkey do:
  
   ipfKey = ipfColorKey(ori_variable_name)
   plot(ipfKey)
-Finished TrueEBSD workflow for trueEbsdCopper in 733.6 seconds.
 </pre>
-<img vspace="5" hspace="5" src="example_copper_04.png" alt=""> <img vspace="5" hspace="5" src="example_copper_05.png" alt=""> <img vspace="5" hspace="5" src="example_copper_06.png" alt=""> <img vspace="5" hspace="5" src="example_copper_07.png" alt=""> <h2 id="19">Futher analysis</h2>
+<img vspace="5" hspace="5" src="example_copper_05.png" alt=""> <p>This is the end of the TrueEBSD distortion correction workflow.</p>
+<pre class="codeinput">t1  = toc;
+disp([<span class="string">'Finished TrueEBSD workflow for '</span> dataName <span class="string">' in '</span> num2str(t1,<span class="string">'%.1f'</span>) <span class="string">' seconds.'</span>]);
+</pre>
+<pre class="codeoutput">Finished TrueEBSD workflow for trueEbsdCopper in 714.5 seconds.
+</pre>
+<h2 id="19">Futher analysis</h2>
 <p>For this dataset, we want to find out if there are preferred void nucleation sites at grain boundaries or triple junctions.</p>
 <pre class="codeinput">disp(<span class="string">'Continuing onto grain boundary voids analysis.'</span>);
+</pre>
+<pre class="codeoutput">Continuing onto grain boundary voids analysis.
 </pre>
 <p>First we extract EBSD map and BSE image with voids contrast from the TrueEBSD processed data.</p>
 <pre class="codeinput">ebsd = job.undistortedList{1}.ebsd;
 bse = job.undistortedList{4}.img;
 </pre>
-<p>We need crop both the EBSD map and BSE image to the largest rectangle that contains the EBSD map information.</p>
+<p>We need to crop both the EBSD map and BSE image to the largest rectangle that contains the EBSD map information.</p>
 <pre class="codeinput">[~,~,~,keepGrid] = FindLargestRectangles(~isnan(job.undistortedList{1}.img));
 ebsd = gridify(ebsd(ij2EbsdSquare(ebsd,keepGrid)));
 <span class="comment">% ebsd forgets its plottingConvention after gridify so we remind it here</span>
 ebsd.plottingConvention = job.undistortedList{1}.mapPlottingConvention;
 <span class="comment">%repeat for binarised reference image</span>
 bse = reshape(bse(keepGrid),size(ebsd));
-</pre>
-<pre class="codeoutput">Continuing onto grain boundary voids analysis.
 </pre>
 <h2 id="22">Update EBSD phase assignment according to BSE image</h2>
 <pre class="codeinput">phasesBse = ij2EbsdSquare(ebsd,(bse&lt;0.8)); <span class="comment">%voids = 1, copper = 0.</span>
@@ -459,10 +476,37 @@ ebsd = EBSDsquare
  Grid size (square): 960 x 2010
  
 </pre>
-<h2 id="23">Calculate grains and boundaries</h2>
-<p>When we reconstruct grains and grain boundaries, we select the copper phase only (<tt>ebsdCopper</tt>).</p>
+<h2 id="23">%% Calculate void size and shape distributions</h2>
+<pre class="codeinput">[grainsVoids] = calcGrains(ebsd(<span class="string">'indexed'</span>),<span class="string">'angle'</span>,10*degree);
+
+display(grainsVoids(<span class="string">'voids'</span>));
+</pre>
+<pre class="codeoutput"> 
+ = grain2d
+ 
+ Phase  Grains  Pixels  Mineral  Symmetry  Crystal reference frame
+     2     683   13834    voids         1      X||a*, Y||b*, Z||c*
+ 
+ &lt;a href="matlab:.boundary"&gt;boundary segments&lt;/a&gt;: 13287 (690 &micro;m)
+ &lt;a href="matlab:.innerBoundary"&gt;inner boundary segments&lt;/a&gt;: 0 (0 &micro;m)
+ &lt;a href="matlab:.triplePoints"&gt;triple points&lt;/a&gt;: 1243
+ 
+ Properties: meanRotation, GOS
+ 
+</pre>
+<h2 id="24">Plot void size histogram</h2>
+<p>most voids are quite small, about 10 pixels big.</p>
+<pre class="codeinput">figure; histogram(grainsVoids(<span class="string">'voids'</span>),grainsVoids(<span class="string">'voids'</span>).area);
+xlabel(<span class="string">'void area ({\mu}m^2)'</span>);
+figure;
+histogram(grainsVoids(<span class="string">'voids'</span>),grainsVoids(<span class="string">'voids'</span>).grainSize,50);
+xlabel(<span class="string">'void area (pixels)'</span>);
+set(gca,<span class="string">'InnerPosition'</span>,[66.6000   65.0000  484.4000  335.5000]);
+</pre>
+<img vspace="5" hspace="5" src="example_copper_06.png" alt=""> <img vspace="5" hspace="5" src="example_copper_07.png" alt=""> <h2 id="25">Calculate copper grains and boundaries</h2>
+<p>When we reconstruct copper grains, we select the copper phase only (<tt>ebsdCopper</tt>).</p>
 <p>By excluding the 'voids' phase in calcGrains, the grain boundaries will be drawn through the voids instead of around them.</p>
-<p>We also fill in all the missing points in the <tt>ebsdCopper</tt> map. This will make finding the void positions relative the the grain boundary easier later, because we can identify each grain boundary segment by its neighbour EBSD map points (<tt>gBs.ebsdId</tt>).</p>
+<p>We also fill in all the missing points in the <tt>ebsdCopper</tt> map, and pass in the <tt>ebsd('Copper').grainId</tt> property when using <tt>EBSD/fill</tt>. This will make finding the void positions relative the the grain boundary easier later, because we can identify each grain boundary segment by its neighbour EBSD map points (<tt>gBs.ebsdId</tt>).</p>
 <pre class="codeinput">[~,ebsd(<span class="string">'Copper'</span>).grainId] = calcGrains(ebsd(<span class="string">'Copper'</span>),<span class="string">'angle'</span>,10*degree);
 ebsdCopper = gridify(smooth(ebsd(<span class="string">'Copper'</span>),<span class="string">'fill'</span>));
 ebsdCopper.plottingConvention=ebsd.plottingConvention;
@@ -477,7 +521,7 @@ gBs = grains.boundary(<span class="string">'Copper'</span>,<span class="string">
 tPs = grains.triplePoints(<span class="string">'Copper'</span>,<span class="string">'Copper'</span>,<span class="string">'Copper'</span>);
 tPGbs = grains.boundary(tPs.boundaryId);
 </pre>
-<p>plot ebsd map with voids overlaid</p>
+<img vspace="5" hspace="5" src="example_copper_08.png" alt=""> <p>plot ebsd map with voids overlaid</p>
 <pre class="codeinput">figure; newMtexFigure(<span class="string">'layout'</span>,[2,1]);
 nextAxis;
 plot(ebsd,ebsd.bc,ebsd.plottingConvention,<span class="string">'micronbar'</span>,<span class="string">'off'</span>);
@@ -498,7 +542,7 @@ mtexTitle(<span class="string">'Copper Orientations (IPF-out of screen), Grain B
   ipfKey = ipfColorKey(ori_variable_name)
   plot(ipfKey)
 </pre>
-<img vspace="5" hspace="5" src="example_copper_08.png" alt=""> <h2 id="25">Find nearest g.b. per copper void</h2>
+<img vspace="5" hspace="5" src="example_copper_09.png" alt=""> <h2 id="27">Find nearest g.b. per copper void</h2>
 <p>We want to find out whether certain grain boundaries or triple junctions are more or less susceptible to void nucleation.</p>
 <p>Every grain boundary segment in <tt>gBs</tt> runs between two neighbour EBSD map points stored in <tt>gBs.ebsdId</tt>. Let's construct an EBSD map <tt>gbPosMap</tt> that shows all EBSD map points that border a grain boundary segment by its index to <tt>gBs</tt>.</p>
 <pre class="codeinput">gbPosMap = zeros(size(ebsdCopper));
@@ -517,7 +561,7 @@ tpPosMap = zeros(size(ebsdCopper));
 tpIdList = repmat([1:length(tPGbs)]',[1,2]);
 tpPosMap(id2ind(ebsdCopper,tpEbsdIdList))=tpIdList(ia);  <span class="comment">%tPGbs indices</span>
 </pre>
-<p>Plot figure to show what these variables are</p>
+<p>Indexing can get a bit confusing, so plot figures as we go to show what these variables are.</p>
 <pre class="codeinput">figure;
 nextAxis;
 plot(ebsdCopper,gbPosMap,ebsdCopper.plottingConvention); colormap <span class="string">gray</span>; hold <span class="string">on</span>; mtexColorbar;
@@ -527,7 +571,7 @@ plot(ebsdCopper,tpPosMap,ebsdCopper.plottingConvention); colormap <span class="s
 plot(gBs,ebsdCopper.plottingConvention,<span class="string">'lineColor'</span>,<span class="string">'g'</span>);
 plot(tPGbs,ebsdCopper.plottingConvention,<span class="string">'lineColor'</span>,<span class="string">'m'</span>,<span class="string">'lineWidth'</span>,1);
 </pre>
-<p>Now we can find the gb and tp nearest to each void pixel</p>
+<img vspace="5" hspace="5" src="example_copper_10.png" alt=""> <p>Now we can find the gb and tp nearest to each void pixel</p>
 <p>1. Compute distance of all EBSD map positions from nearest grain boundary (<tt>gbDist</tt>) and the nearest grain boundary at every EBSD map position (<tt>gbNearest</tt>).</p>
 <pre class="codeinput">[gbDist, ix]=bwdist(gbPosMap); <span class="comment">% ix are linear indices of gbPosMap</span>
 gbNearest=gbPosMap(ix);
@@ -551,7 +595,8 @@ nextAxis;
 plot(ebsdCopper,tpNearest); colormap <span class="string">gray</span>; hold <span class="string">on</span>; mtexColorbar;
 plot(tPGbs,<span class="string">'lineColor'</span>,<span class="string">'m'</span>,<span class="string">'lineWidth'</span>,1);
 </pre>
-<p>2. Construct an EBSD map <tt>voidsMapGb</tt> showing the locations of all voids, where void pixels = nearest gbId and not-voids = 0.</p>
+<img vspace="5" hspace="5" src="example_copper_11.png" alt=""> <h2 id="31">2. Construct an EBSD map <tt>voidsMapGb</tt> showing the locations of all voids,</h2>
+<p>where void pixels = nearest gbId and not-voids = 0.</p>
 <pre class="codeinput">voidsMapgb = nan(size(ebsd));
 voidsMapgb(ebsd.phase==ebsd(<span class="string">'voids'</span>).phase(1))= gbNearest(ebsd.phase==ebsd(<span class="string">'voids'</span>).phase(1)); <span class="comment">%indices to gBs</span>
 </pre>
@@ -559,7 +604,8 @@ voidsMapgb(ebsd.phase==ebsd(<span class="string">'voids'</span>).phase(1))= gbNe
 <pre class="codeinput">voidsMaptp = nan(size(ebsd));
 voidsMaptp(ebsd.phase==ebsd(<span class="string">'voids'</span>).phase(1))= tpNearest(ebsd.phase==ebsd(<span class="string">'voids'</span>).phase(1)); <span class="comment">%indices to tPGbs</span>
 </pre>
-<p>3. Find closest g.b. to each void we only find intersections between voids and gbs, because the voids cover up the copper-copper boundaries.</p>
+<h2 id="33">3. Find closest g.b. and t.p. to each void</h2>
+<p>we only find intersections between voids and gbs, because the voids cover up the copper-copper boundaries.</p>
 <p>
 <tt>voidsListGb</tt> lists the nearest grain boundary segment to every void pixel.</p>
 <p>
@@ -589,12 +635,13 @@ nextAxis;
 plot(ebsdCopper,voidsDisttp); colormap <span class="string">gray</span>; hold <span class="string">on</span>; mtexColorbar;
 plot(tPGbs(voidsListtp),<span class="string">'lineColor'</span>,<span class="string">'m'</span>,<span class="string">'lineWidth'</span>,1);
 </pre>
-<p>4. Separate out voids on the boundary vs close to the boundary (could be not on the boundary, could be a image matching error)</p>
+<img vspace="5" hspace="5" src="example_copper_12.png" alt=""> <h2 id="34">4. Separate out voids on the boundary vs close to the boundary (could be</h2>
+<p>not on the boundary, could be a image matching error)</p>
 <p>What does 'close' (vs 'far from the boundary') mean? We can guess a threshold value by summing the TrueEBSD fit residuals (95th percentile).</p>
 <pre class="codeinput">voidsList_threshPix = prctile(sqrt(job.shifts{1}{1}.fitError.ROI.Shift_X_1.^2 + job.shifts{1}{1}.fitError.ROI.Shift_Y_1.^2),95)<span class="keyword">...</span>
                     + prctile(sqrt(job.shifts{2}{1}.fitError.ROI.Shift_X_1.^2 + job.shifts{2}{1}.fitError.ROI.Shift_Y_1.^2),95) <span class="keyword">...</span>
                     + prctile(sqrt(job.shifts{3}{1}.fitError.ROI.Shift_X_1.^2 + job.shifts{3}{1}.fitError.ROI.Shift_Y_1.^2),95);
-disp(num2str(voidsList_threshPix));
+disp([<span class="string">'Threshold distance from g.b. (pixels): '</span> num2str(voidsList_threshPix)]);
 
 <span class="comment">%split |voidsList| into gb segments on, near, and far from a void</span>
 voidsListGb_on = voidsMapgb(voidsDistgb&lt;=1 &amp; ~isnan(voidsMapgb));
@@ -617,8 +664,10 @@ voidsListTp_notNear = voidsMaptp(voidsDisttp&gt;voidsList_threshPix &amp; ~isnan
 voidsListgb = unique([voidsListGb_on;voidsListGb_near]);
 voidsListtp = unique([voidsListTp_on;voidsListTp_near]);
 </pre>
-<h2 id="33">grain boundary statistics using misorientation distribution function</h2>
-<p>Compare grain boundary misorientation at voids with the whole sample this is counted per void pixel near/at a g.b., so big voids that intersect will be weighted more strongly than small voids.</p>
+<pre class="codeoutput">Threshold distance from g.b. (pixels): 4.9532
+</pre>
+<h2 id="35">grain boundary statistics using misorientation distribution function</h2>
+<p>Compare grain boundary misorientation at voids with the whole sample this is counted per g.b. segment near/on a void, not per void, so big voids that intersect many gb segments will be weighted more than small voids.</p>
 <pre class="codeinput">mdf_voidsGb = calcDensity(gBs(voidsListgb).misorientation);
 mdf_voidsTp = calcDensity(gBs(voidsListtp).misorientation);
 mdf_all = calcDensity(gBs.misorientation);
@@ -634,14 +683,13 @@ plot(gBs(voidsListGb_near),ebsd.plottingConvention,<span class="string">'linecol
 plot(tPGbs(voidsListTp_on),ebsd.plottingConvention,<span class="string">'linecolor'</span>,<span class="string">'m'</span>,<span class="string">'linewidth'</span>,3);
 plot(tPGbs(voidsListTp_near),ebsd.plottingConvention,<span class="string">'linecolor'</span>,str2rgb(<span class="string">'DarkRed'</span>),<span class="string">'linewidth'</span>,3);
 </pre>
-<pre class="codeoutput">4.9532
-  I'm going to colorize the orientation data with the 
+<pre class="codeoutput">  I'm going to colorize the orientation data with the 
   standard MTEX ipf colorkey. To view the colorkey do:
  
   ipfKey = ipfColorKey(ori_variable_name)
   plot(ipfKey)
 </pre>
-<img vspace="5" hspace="5" src="example_copper_09.png" alt=""> <img vspace="5" hspace="5" src="example_copper_10.png" alt=""> <img vspace="5" hspace="5" src="example_copper_11.png" alt=""> <img vspace="5" hspace="5" src="example_copper_12.png" alt=""> <h2 id="34">Plot misorientation distributions</h2>
+<img vspace="5" hspace="5" src="example_copper_13.png" alt=""> <h2 id="36">Plot misorientation distributions</h2>
 <p>The next two plot shows that the grain boundaries with around 60 degrees and [111] misorientation are particularly resistant to void formation. These are the sigma-3 twin boundaries in FCC copper.</p>
 <p>However, there are no triple junctions types that are particularly resistant to void formation in this material.</p>
 <pre class="codeinput">figure;
@@ -654,7 +702,6 @@ legend(<span class="string">'show'</span>,<span class="string">'Location'</span>
 xlabel(<span class="string">'Misorientation angle / degrees'</span>);
 ylabel(<span class="string">'Frequency / mrd'</span>);
 
-
 figure; newMtexFigure(<span class="string">'layout'</span>,[2,2],<span class="string">'figSize'</span>,<span class="string">'large'</span>,<span class="string">'outerplotspacing'</span>,30,<span class="string">'innerplotspacing'</span>,50);
 nextAxis(1,1); plotAxisDistribution(mdf_all,<span class="string">'colorRange'</span>,<span class="string">'equal'</span>); mtexTitle(<span class="string">'All GBs'</span>);
 nextAxis(1,2); plotAxisDistribution(mdf_voidsGb,<span class="string">'colorRange'</span>,<span class="string">'equal'</span>); mtexTitle(<span class="string">'Void GBs'</span>);
@@ -662,7 +709,13 @@ nextAxis(2,1); plotAxisDistribution(mdf_voidsTp,<span class="string">'colorRange
 nextAxis(2,2); plotAxisDistribution(ebsd(<span class="string">'Copper'</span>).CS,ebsd(<span class="string">'Copper'</span>).CS,<span class="string">'antipodal'</span>,<span class="string">'colorRange'</span>,<span class="string">'equal'</span>); mtexTitle(<span class="string">'Uniform MDF'</span>);
 mtexColorbar;
 </pre>
-<img vspace="5" hspace="5" src="example_copper_13.png" alt=""> <img vspace="5" hspace="5" src="example_copper_14.png" alt=""> <p class="footer">
+<img vspace="5" hspace="5" src="example_copper_14.png" alt=""> <img vspace="5" hspace="5" src="example_copper_15.png" alt=""> <p>This is the end of the grain boundary voids analysis.</p>
+<pre class="codeinput">t1  = toc;
+disp([<span class="string">'Finished grain boundary voids analysis for '</span> dataName <span class="string">' in '</span> num2str(t1,<span class="string">'%.1f'</span>) <span class="string">' seconds, script ends here.'</span>]);
+</pre>
+<pre class="codeoutput">Finished grain boundary voids analysis for trueEbsdCopper in 1165.4 seconds, script ends here.
+</pre>
+<p class="footer">
 <br>
 <a href="https://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2024a</a>
 <br>
@@ -864,7 +917,7 @@ disp(['Finished calculate image shifts and fit distortion models for ' dataName 
 
 job = undistort(job);
 
-%%% Plot images after distortion correction
+%% Plot images after distortion correction
 
 figure('WindowState', 'maximized'); 
 t=tiledlayout('flow','TileSpacing','tight','Padding','tight');
@@ -882,7 +935,7 @@ t1  = toc;
 disp(['Finished remove image distortions for ' dataName ' in ' num2str(t1,'%.1f') ' seconds']);
 
 
-%%% Plot data as MTEX EBSD maps
+%% Plot data as MTEX EBSD maps
 % We can also plot all images as MTEX EBSD maps. This is a good check to
 % make sure images are not indexed 'upside down' relative to the EBSD map.
 % Since images are usually stored and read by MATLAB using the 'axis ij'
@@ -904,7 +957,7 @@ for n=1:numel(job.undistortedList)
     title(['Undistorted MTEX image ' num2str(n)],'Color','k');
 end
 
-%%%
+%%
 % This is the end of the TrueEBSD distortion correction workflow. 
 t1  = toc;
 disp(['Finished TrueEBSD workflow for ' dataName ' in ' num2str(t1,'%.1f') ' seconds.']);
@@ -916,14 +969,14 @@ disp(['Finished TrueEBSD workflow for ' dataName ' in ' num2str(t1,'%.1f') ' sec
 
 disp('Continuing onto grain boundary voids analysis.');
 
-%%%
+%%
 % First we extract EBSD map and BSE image with voids contrast from the
 % TrueEBSD processed data.
 ebsd = job.undistortedList{1}.ebsd;
 bse = job.undistortedList{4}.img; 
 
 %%%
-% We need crop both the EBSD map and BSE image to the largest rectangle that 
+% We need to crop both the EBSD map and BSE image to the largest rectangle that 
 % contains the EBSD map information. 
 [~,~,~,keepGrid] = FindLargestRectangles(~isnan(job.undistortedList{1}.img));
 ebsd = gridify(ebsd(ij2EbsdSquare(ebsd,keepGrid)));
@@ -945,14 +998,31 @@ ebsd.plottingConvention = job.undistortedList{1}.mapPlottingConvention;
 
 display(ebsd);
 
-%% Calculate grains and boundaries
-% When we reconstruct grains and grain boundaries, we select the copper
-% phase only (|ebsdCopper|).
+%% %% Calculate void size and shape distributions
+
+[grainsVoids] = calcGrains(ebsd('indexed'),'angle',10*degree);
+
+display(grainsVoids('voids'));
+
+%% Plot void size histogram
+% most voids are quite small, about 10 pixels big.
+figure; histogram(grainsVoids('voids'),grainsVoids('voids').area);
+xlabel('void area ({\mu}m^2)');
+figure; 
+histogram(grainsVoids('voids'),grainsVoids('voids').grainSize,50);
+xlabel('void area (pixels)'); 
+set(gca,'InnerPosition',[66.6000   65.0000  484.4000  335.5000]);
+
+
+%% Calculate copper grains and boundaries
+% When we reconstruct copper grains, we select the copper phase only 
+% (|ebsdCopper|).
 %
 % By excluding the 'voids' phase in calcGrains, the grain boundaries will
 % be drawn through the voids instead of around them. 
 %
-% We also fill in all the missing points in the |ebsdCopper| map. This will
+% We also fill in all the missing points in the |ebsdCopper| map, and pass
+% in the |ebsd('Copper').grainId| property when using |EBSD/fill|. This will
 % make finding the void positions relative the the grain boundary easier
 % later, because we can identify each grain boundary segment by its
 % neighbour EBSD map points (|gBs.ebsdId|).
@@ -972,7 +1042,7 @@ tPs = grains.triplePoints('Copper','Copper','Copper');
 tPGbs = grains.boundary(tPs.boundaryId);
 
 
-%%%
+%% 
 % plot ebsd map with voids overlaid
 figure; newMtexFigure('layout',[2,1]);
 nextAxis;
@@ -1013,8 +1083,9 @@ tpPosMap = zeros(size(ebsdCopper));
 tpIdList = repmat([1:length(tPGbs)]',[1,2]);
 tpPosMap(id2ind(ebsdCopper,tpEbsdIdList))=tpIdList(ia);  %tPGbs indices
 
-%%% 
-% Plot figure to show what these variables are
+%%
+% Indexing can get a bit confusing, so plot figures as we go to show what 
+% these variables are.
 figure; 
 nextAxis;
 plot(ebsdCopper,gbPosMap,ebsdCopper.plottingConvention); colormap gray; hold on; mtexColorbar;
@@ -1024,7 +1095,7 @@ plot(ebsdCopper,tpPosMap,ebsdCopper.plottingConvention); colormap gray; hold on;
 plot(gBs,ebsdCopper.plottingConvention,'lineColor','g');
 plot(tPGbs,ebsdCopper.plottingConvention,'lineColor','m','lineWidth',1);
 
-%%%
+%%
 % Now we can find the gb and tp nearest to each void pixel
 %
 % 1. Compute distance of all EBSD map positions from nearest grain boundary
@@ -1052,8 +1123,7 @@ nextAxis;
 plot(ebsdCopper,tpNearest); colormap gray; hold on; mtexColorbar;
 plot(tPGbs,'lineColor','m','lineWidth',1);
 
-%%%
-% 2. Construct an EBSD map |voidsMapGb| showing the locations of all voids,
+%% 2. Construct an EBSD map |voidsMapGb| showing the locations of all voids,
 % where void pixels = nearest gbId and not-voids = 0. 
 voidsMapgb = nan(size(ebsd));
 voidsMapgb(ebsd.phase==ebsd('voids').phase(1))= gbNearest(ebsd.phase==ebsd('voids').phase(1)); %indices to gBs
@@ -1062,8 +1132,7 @@ voidsMapgb(ebsd.phase==ebsd('voids').phase(1))= gbNearest(ebsd.phase==ebsd('void
 voidsMaptp = nan(size(ebsd));
 voidsMaptp(ebsd.phase==ebsd('voids').phase(1))= tpNearest(ebsd.phase==ebsd('voids').phase(1)); %indices to tPGbs
 
-%%%
-% 3. Find closest g.b. to each void
+%% 3. Find closest g.b. and t.p. to each void
 % we only find intersections between voids and gbs, because the voids
 % cover up the copper-copper boundaries.
 %
@@ -1098,8 +1167,7 @@ plot(ebsdCopper,voidsDisttp); colormap gray; hold on; mtexColorbar;
 plot(tPGbs(voidsListtp),'lineColor','m','lineWidth',1);
 
 
-%%%
-% 4. Separate out voids on the boundary vs close to the boundary (could be
+%% 4. Separate out voids on the boundary vs close to the boundary (could be
 % not on the boundary, could be a image matching error)
 %
 % What does 'close' (vs 'far from the boundary') mean? We can guess a 
@@ -1109,7 +1177,7 @@ plot(tPGbs(voidsListtp),'lineColor','m','lineWidth',1);
 voidsList_threshPix = prctile(sqrt(job.shifts{1}{1}.fitError.ROI.Shift_X_1.^2 + job.shifts{1}{1}.fitError.ROI.Shift_Y_1.^2),95)...
                     + prctile(sqrt(job.shifts{2}{1}.fitError.ROI.Shift_X_1.^2 + job.shifts{2}{1}.fitError.ROI.Shift_Y_1.^2),95) ...
                     + prctile(sqrt(job.shifts{3}{1}.fitError.ROI.Shift_X_1.^2 + job.shifts{3}{1}.fitError.ROI.Shift_Y_1.^2),95); 
-disp(num2str(voidsList_threshPix));
+disp(['Threshold distance from g.b. (pixels): ' num2str(voidsList_threshPix)]);
 
 %split |voidsList| into gb segments on, near, and far from a void
 voidsListGb_on = voidsMapgb(voidsDistgb<=1 & ~isnan(voidsMapgb)); 
@@ -1133,10 +1201,10 @@ voidsListgb = unique([voidsListGb_on;voidsListGb_near]);
 voidsListtp = unique([voidsListTp_on;voidsListTp_near]);
 
 
-%%% grain boundary statistics using misorientation distribution function
+%% grain boundary statistics using misorientation distribution function
 % Compare grain boundary misorientation at voids with the whole sample
-% this is counted per void pixel near/at a g.b., so big voids that intersect
-% will be weighted more strongly than small voids.
+% this is counted per g.b. segment near/on a void, not per void, so big 
+% voids that intersect many gb segments will be weighted more than small voids.
 mdf_voidsGb = calcDensity(gBs(voidsListgb).misorientation);
 mdf_voidsTp = calcDensity(gBs(voidsListtp).misorientation);
 mdf_all = calcDensity(gBs.misorientation);
@@ -1170,7 +1238,6 @@ legend('show','Location','northwest');
 xlabel('Misorientation angle / degrees');
 ylabel('Frequency / mrd');
 
-
 figure; newMtexFigure('layout',[2,2],'figSize','large','outerplotspacing',30,'innerplotspacing',50);
 nextAxis(1,1); plotAxisDistribution(mdf_all,'colorRange','equal'); mtexTitle('All GBs');
 nextAxis(1,2); plotAxisDistribution(mdf_voidsGb,'colorRange','equal'); mtexTitle('Void GBs');
@@ -1178,6 +1245,11 @@ nextAxis(2,1); plotAxisDistribution(mdf_voidsTp,'colorRange','equal'); mtexTitle
 nextAxis(2,2); plotAxisDistribution(ebsd('Copper').CS,ebsd('Copper').CS,'antipodal','colorRange','equal'); mtexTitle('Uniform MDF');
 mtexColorbar;
 
+
+%%
+% This is the end of the grain boundary voids analysis. 
+t1  = toc;
+disp(['Finished grain boundary voids analysis for ' dataName ' in ' num2str(t1,'%.1f') ' seconds, script ends here.']);
 
 
 ##### SOURCE END #####
