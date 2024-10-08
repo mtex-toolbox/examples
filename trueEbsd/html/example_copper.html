@@ -9,7 +9,7 @@ To make changes, update the MATLAB code and republish this document.
 <title>example_copper</title>
 <meta name="generator" content="MATLAB 24.1">
 <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/">
-<meta name="DC.date" content="2024-10-04">
+<meta name="DC.date" content="2024-10-08">
 <meta name="DC.source" content="example_copper.m">
 <style type="text/css">
 html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
@@ -134,23 +134,20 @@ table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px soli
 <a href="#33">3. Find closest g.b. and t.p. to each void</a>
 </li>
 <li>
-<a href="#34">4. Separate out voids on the boundary vs close to the boundary (could be</a>
+<a href="#39">grain boundary statistics using misorientation distribution function</a>
 </li>
 <li>
-<a href="#35">grain boundary statistics using misorientation distribution function</a>
-</li>
-<li>
-<a href="#36">Plot misorientation distributions</a>
+<a href="#40">Plot misorientation distributions</a>
 </li>
 </ul>
 </div>
 <h2 id="1">MTEX TrueEBSD for analysing grain boundary voids in a copper polycrystal</h2>
-<p>authors: Vivian Tong, National Physical Laboratory, Teddington, UK; Contact: <a href="mailto:vivian.tong@npl.co.uk">vivian.tong@npl.co.uk</a>
+<p>author: Vivian Tong, National Physical Laboratory, Teddington, UK; EBSD data: "Void-Microstructure Correlation in Thin Film Copper Power Semiconductor Metallization using MTEX." Matthias Grabner, Master's Thesis, Graz University of Technology, 2023. Contact: <a href="mailto:vivian.tong@npl.co.uk">vivian.tong@npl.co.uk</a>
 </p>
-<p>Description: Example script to run trueEBSD workflow MATLAB R2024a and mtex version forked from feature/grain3d, approx mtex6.0.beta3</p>
-<p>Inputs:</p>
-<p>Outputs: Published html file containing code and outputs</p>
-<p>Version control 20241001 - create TrueEBSD example script using ID29 data (not released).</p>
+<p>Description: Example script to run trueEBSD workflow and postprocessing to characterise grain boundary voids in a copper polycrystal. MATLAB R2024a and mtex version forked from feature/grain3d, approx mtex6.0.beta3</p>
+<p>Inputs: copper29.h5oina</p>
+<p>Outputs: Published html file containing code, outputs and figures example_copper_out.mat data file (not released).</p>
+<p>Version control 20241001 - create TrueEBSD example script using copper29 data 20241008 - tidy up published outputs and add voids analyses</p>
 <pre class="codeinput">clear; close <span class="string">all</span>; home;
 
 <span class="comment">% TrueEBSD version ID</span>
@@ -210,8 +207,8 @@ ebsd = EBSDsquare
  Properties: x, y, bc, bs, bands, MAD, quality, oldId
  Scan unit : um
  Grid size (square): 547 x 1031
- Header: &lt;a href="matlab:dispStruct(pullTemp(17))"&gt;show struct&lt;/a&gt;
- Images: &lt;a href="matlab:dispStruct(pullTemp(18))"&gt;show struct&lt;/a&gt;
+ Header: &lt;a href="matlab:dispStruct(pullTemp(3))"&gt;show struct&lt;/a&gt;
+ Images: &lt;a href="matlab:dispStruct(pullTemp(4))"&gt;show struct&lt;/a&gt;
  
   struct with fields:
 
@@ -280,7 +277,7 @@ linkaxes;
 t1  = toc;
 disp([<span class="string">'Finished set up trueEBSD job for '</span> dataName <span class="string">' in '</span> num2str(t1,<span class="string">'%.1f'</span>) <span class="string">' seconds'</span>]);
 </pre>
-<pre class="codeoutput">Finished set up trueEBSD job for trueEbsdCopper in 5.3 seconds
+<pre class="codeoutput">Finished set up trueEBSD job for trueEbsdCopper in 4.7 seconds
 </pre>
 <img vspace="5" hspace="5" src="example_copper_01.png" alt=""> <h2 id="9">Resize images to match pixel size and FOV</h2>
 <p>The EBSD map and images in <tt>job.imgList{:}</tt> are of the same sample area but have different pixel sizes. Here, we match up the pixel positions of the the image sequence in <tt>job.imgList{:}</tt>.</p>
@@ -306,7 +303,7 @@ job =
     undistortedList: {[1&times;1 distortedImg]}
              shifts: {}
 
-Finished resize images to match pixel size and FOV for trueEbsdCopper in 16.8 seconds
+Finished resize images to match pixel size and FOV for trueEbsdCopper in 27.3 seconds
 </pre>
 <h2 id="11">Calculate local image shifts and fit to a distortion model</h2>
 <p>Now we compute local image ROI shifts and fit them to distortion models. After each image correction step, the average ROI shifts (X, Y and length components) are printed to the command window.</p>
@@ -381,9 +378,9 @@ job =
     undistortedList: {[1&times;1 distortedImg]}
              shifts: {{1&times;2 cell}  {1&times;3 cell}  {1&times;1 cell}}
 
-Finished calculate image shifts and fit distortion models for trueEbsdCopper in 275.6 seconds
+Finished calculate image shifts and fit distortion models for trueEbsdCopper in 289.9 seconds
 </pre>
-<img vspace="5" hspace="5" src="example_copper_02.png" alt=""> <img vspace="5" hspace="5" src="example_copper_03.png" alt=""> <h2 id="15">Undistort images</h2>
+<img vspace="5" hspace="5" src="example_copper_02.png" alt=""> <h2 id="15">Undistort images</h2>
 <p>This applies the image shifts between each image pair in <tt>job.shifts</tt> to the data in <tt>job.resizedList</tt>, and outputs a new property job.undistortedList which contains aligned image data. Now all pixels in this image sequence can be directly overlaid.</p>
 <pre class="codeinput">job = undistort(job);
 </pre>
@@ -403,9 +400,9 @@ linkaxes;
 t1  = toc;
 disp([<span class="string">'Finished remove image distortions for '</span> dataName <span class="string">' in '</span> num2str(t1,<span class="string">'%.1f'</span>) <span class="string">' seconds'</span>]);
 </pre>
-<pre class="codeoutput">Finished remove image distortions for trueEbsdCopper in 681.5 seconds
+<pre class="codeoutput">Finished remove image distortions for trueEbsdCopper in 698.6 seconds
 </pre>
-<img vspace="5" hspace="5" src="example_copper_04.png" alt=""> <h2 id="17">Plot data as MTEX EBSD maps</h2>
+<img vspace="5" hspace="5" src="example_copper_03.png" alt=""> <h2 id="17">Plot data as MTEX EBSD maps</h2>
 <p>We can also plot all images as MTEX EBSD maps. This is a good check to make sure images are not indexed 'upside down' relative to the EBSD map. Since images are usually stored and read by MATLAB using the 'axis ij' convention, but EBSD maps can have other kinds of plotting convention defined in ebsd.plottingConvention, we need the ij2EbsdSquare helper function to rotate the image data into the ebsd map plottingConvention.</p>
 <pre class="codeinput">figure;
 nextAxis;
@@ -427,11 +424,11 @@ title(<span class="string">'Undistorted MTEX EBSD map (Copper IPF-out of screen)
   ipfKey = ipfColorKey(ori_variable_name)
   plot(ipfKey)
 </pre>
-<img vspace="5" hspace="5" src="example_copper_05.png" alt=""> <p>This is the end of the TrueEBSD distortion correction workflow.</p>
+<img vspace="5" hspace="5" src="example_copper_04.png" alt=""> <p>This is the end of the TrueEBSD distortion correction workflow.</p>
 <pre class="codeinput">t1  = toc;
 disp([<span class="string">'Finished TrueEBSD workflow for '</span> dataName <span class="string">' in '</span> num2str(t1,<span class="string">'%.1f'</span>) <span class="string">' seconds.'</span>]);
 </pre>
-<pre class="codeoutput">Finished TrueEBSD workflow for trueEbsdCopper in 714.5 seconds.
+<pre class="codeoutput">Finished TrueEBSD workflow for trueEbsdCopper in 731.9 seconds.
 </pre>
 <h2 id="19">Futher analysis</h2>
 <p>For this dataset, we want to find out if there are preferred void nucleation sites at grain boundaries or triple junctions.</p>
@@ -503,7 +500,7 @@ histogram(grainsVoids(<span class="string">'voids'</span>),grainsVoids(<span cla
 xlabel(<span class="string">'void area (pixels)'</span>);
 set(gca,<span class="string">'InnerPosition'</span>,[66.6000   65.0000  484.4000  335.5000]);
 </pre>
-<img vspace="5" hspace="5" src="example_copper_06.png" alt=""> <img vspace="5" hspace="5" src="example_copper_07.png" alt=""> <h2 id="25">Calculate copper grains and boundaries</h2>
+<img vspace="5" hspace="5" src="example_copper_05.png" alt=""> <img vspace="5" hspace="5" src="example_copper_06.png" alt=""> <h2 id="25">Calculate copper grains and boundaries</h2>
 <p>When we reconstruct copper grains, we select the copper phase only (<tt>ebsdCopper</tt>).</p>
 <p>By excluding the 'voids' phase in calcGrains, the grain boundaries will be drawn through the voids instead of around them.</p>
 <p>We also fill in all the missing points in the <tt>ebsdCopper</tt> map, and pass in the <tt>ebsd('Copper').grainId</tt> property when using <tt>EBSD/fill</tt>. This will make finding the void positions relative the the grain boundary easier later, because we can identify each grain boundary segment by its neighbour EBSD map points (<tt>gBs.ebsdId</tt>).</p>
@@ -521,7 +518,7 @@ gBs = grains.boundary(<span class="string">'Copper'</span>,<span class="string">
 tPs = grains.triplePoints(<span class="string">'Copper'</span>,<span class="string">'Copper'</span>,<span class="string">'Copper'</span>);
 tPGbs = grains.boundary(tPs.boundaryId);
 </pre>
-<img vspace="5" hspace="5" src="example_copper_08.png" alt=""> <p>plot ebsd map with voids overlaid</p>
+<p>plot ebsd map with voids overlaid</p>
 <pre class="codeinput">figure; newMtexFigure(<span class="string">'layout'</span>,[2,1]);
 nextAxis;
 plot(ebsd,ebsd.bc,ebsd.plottingConvention,<span class="string">'micronbar'</span>,<span class="string">'off'</span>);
@@ -542,7 +539,7 @@ mtexTitle(<span class="string">'Copper Orientations (IPF-out of screen), Grain B
   ipfKey = ipfColorKey(ori_variable_name)
   plot(ipfKey)
 </pre>
-<img vspace="5" hspace="5" src="example_copper_09.png" alt=""> <h2 id="27">Find nearest g.b. per copper void</h2>
+<img vspace="5" hspace="5" src="example_copper_07.png" alt=""> <h2 id="27">Find nearest g.b. per copper void</h2>
 <p>We want to find out whether certain grain boundaries or triple junctions are more or less susceptible to void nucleation.</p>
 <p>Every grain boundary segment in <tt>gBs</tt> runs between two neighbour EBSD map points stored in <tt>gBs.ebsdId</tt>. Let's construct an EBSD map <tt>gbPosMap</tt> that shows all EBSD map points that border a grain boundary segment by its index to <tt>gBs</tt>.</p>
 <pre class="codeinput">gbPosMap = zeros(size(ebsdCopper));
@@ -571,7 +568,7 @@ plot(ebsdCopper,tpPosMap,ebsdCopper.plottingConvention); colormap <span class="s
 plot(gBs,ebsdCopper.plottingConvention,<span class="string">'lineColor'</span>,<span class="string">'g'</span>);
 plot(tPGbs,ebsdCopper.plottingConvention,<span class="string">'lineColor'</span>,<span class="string">'m'</span>,<span class="string">'lineWidth'</span>,1);
 </pre>
-<img vspace="5" hspace="5" src="example_copper_10.png" alt=""> <p>Now we can find the gb and tp nearest to each void pixel</p>
+<img vspace="5" hspace="5" src="example_copper_08.png" alt=""> <p>Now we can find the gb and tp nearest to each void pixel</p>
 <p>1. Compute distance of all EBSD map positions from nearest grain boundary (<tt>gbDist</tt>) and the nearest grain boundary at every EBSD map position (<tt>gbNearest</tt>).</p>
 <pre class="codeinput">[gbDist, ix]=bwdist(gbPosMap); <span class="comment">% ix are linear indices of gbPosMap</span>
 gbNearest=gbPosMap(ix);
@@ -595,8 +592,8 @@ nextAxis;
 plot(ebsdCopper,tpNearest); colormap <span class="string">gray</span>; hold <span class="string">on</span>; mtexColorbar;
 plot(tPGbs,<span class="string">'lineColor'</span>,<span class="string">'m'</span>,<span class="string">'lineWidth'</span>,1);
 </pre>
-<img vspace="5" hspace="5" src="example_copper_11.png" alt=""> <h2 id="31">2. Construct an EBSD map <tt>voidsMapGb</tt> showing the locations of all voids,</h2>
-<p>where void pixels = nearest gbId and not-voids = 0.</p>
+<img vspace="5" hspace="5" src="example_copper_09.png" alt=""> <h2 id="31">2. Construct an EBSD map <tt>voidsMapGb</tt> showing the locations of all voids,</h2>
+<p>where void pixels = nearest gbId and not-voids = nan.</p>
 <pre class="codeinput">voidsMapgb = nan(size(ebsd));
 voidsMapgb(ebsd.phase==ebsd(<span class="string">'voids'</span>).phase(1))= gbNearest(ebsd.phase==ebsd(<span class="string">'voids'</span>).phase(1)); <span class="comment">%indices to gBs</span>
 </pre>
@@ -635,8 +632,7 @@ nextAxis;
 plot(ebsdCopper,voidsDisttp); colormap <span class="string">gray</span>; hold <span class="string">on</span>; mtexColorbar;
 plot(tPGbs(voidsListtp),<span class="string">'lineColor'</span>,<span class="string">'m'</span>,<span class="string">'lineWidth'</span>,1);
 </pre>
-<img vspace="5" hspace="5" src="example_copper_12.png" alt=""> <h2 id="34">4. Separate out voids on the boundary vs close to the boundary (could be</h2>
-<p>not on the boundary, could be a image matching error)</p>
+<img vspace="5" hspace="5" src="example_copper_10.png" alt=""> <p>4. Separate out voids on the boundary vs close to the boundary (could be not on the boundary, could be a image matching error)</p>
 <p>What does 'close' (vs 'far from the boundary') mean? We can guess a threshold value by summing the TrueEBSD fit residuals (95th percentile).</p>
 <pre class="codeinput">voidsList_threshPix = prctile(sqrt(job.shifts{1}{1}.fitError.ROI.Shift_X_1.^2 + job.shifts{1}{1}.fitError.ROI.Shift_Y_1.^2),95)<span class="keyword">...</span>
                     + prctile(sqrt(job.shifts{2}{1}.fitError.ROI.Shift_X_1.^2 + job.shifts{2}{1}.fitError.ROI.Shift_Y_1.^2),95) <span class="keyword">...</span>
@@ -647,9 +643,28 @@ disp([<span class="string">'Threshold distance from g.b. (pixels): '</span> num2
 voidsListGb_on = voidsMapgb(voidsDistgb&lt;=1 &amp; ~isnan(voidsMapgb));
 voidsListGb_near = voidsMapgb(voidsDistgb&gt;1 &amp; voidsDistgb&lt;=voidsList_threshPix &amp; ~isnan(voidsMapgb));
 voidsListGb_notNear = voidsMapgb(voidsDistgb&gt;voidsList_threshPix &amp; ~isnan(voidsMapgb));
+</pre>
+<pre class="codeinput">
+<span class="comment">%precalculate number of void pixels in the map (NOT number of voids!)</span>
+numVoidPix = nnz(~isnan(voidsMapgb));
+assert(nnz(~isnan(voidsMapgb))==nnz(~isnan(voidsMaptp))); <span class="comment">%error if there</span>
+<span class="comment">% are inconsistent number of void pixels -- likely bug somewhere</span>
 
+voidsListGb_onnearFraction = (numel(voidsListGb_near)+numel(voidsListGb_on))/numVoidPix;
+voidsListGb_notNearFraction = numel(voidsListGb_notNear)/numVoidPix;
+
+<span class="comment">%not meaningful to split 'on' and 'near' because only pixels directly</span>
+<span class="comment">%intersecting the TP are counted as 'on'</span>
+disp([num2str(voidsListGb_onnearFraction*100) <span class="string">' % of void pixels are on or near a GB (including GBs attached to TPs).'</span>]);
+disp([num2str(voidsListGb_notNearFraction*100) <span class="string">' % of void pixels are far from a GB.'</span>]);
+</pre>
+<pre class="codeoutput">Threshold distance from g.b. (pixels): 4.9532
+90.1836 % of void pixels are on or near a GB (including GBs attached to TPs).
+9.8164 % of void pixels are far from a GB.
+</pre>
+<p>Now do the same for triple junctions, but this involves a few more steps because each triple junction is a triplet of grain boundary segments.</p>
+<pre class="codeinput">
 <span class="comment">%Find gb segments in |voidsList_*| that are also triple junctions</span>
-
 <span class="comment">% also include the other g.b. segments in the triple junction</span>
 <span class="comment">% and reunite the triple points with their partner segments</span>
 t1 = voidsMaptp(voidsDisttp&lt;=1 &amp; ~isnan(voidsMaptp));
@@ -659,14 +674,24 @@ t1 = voidsMaptp(voidsDisttp&gt;1 &amp; voidsDisttp&lt;=voidsList_threshPix &amp;
 [r,~] = ind2sub(size(tPs.boundaryId),t1);
 voidsListTp_near = sub2ind(size(tPs.boundaryId),repmat(r(:),[1 3]),repmat([1:3],[numel(r) 1]));
 voidsListTp_notNear = voidsMaptp(voidsDisttp&gt;voidsList_threshPix &amp; ~isnan(voidsMaptp));
+</pre>
+<p>express these as % of void pixels near or far from a TP</p>
+<pre class="codeinput">voidsListTp_onnearFraction = (size(voidsListTp_near,1)+size(voidsListTp_on,1))/numVoidPix;
+voidsListTp_notNearFraction = size(voidsListTp_notNear,1)/numVoidPix;
 
-<span class="comment">% Now exclude repeats and gb/tp segments that are not near a void</span>
-voidsListgb = unique([voidsListGb_on;voidsListGb_near]);
+<span class="comment">%not meaningful to split 'on' and 'near' because only pixels directly</span>
+<span class="comment">%intersecting the TP are counted as 'on'</span>
+disp([num2str(voidsListTp_onnearFraction*100) <span class="string">' % of void pixels are on or near a TP.'</span>]);
+disp([num2str(voidsListTp_notNearFraction*100) <span class="string">' % of void pixels are far from a TP.'</span>]);
+</pre>
+<pre class="codeoutput">50.253 % of void pixels are on or near a TP.
+49.747 % of void pixels are far from a TP.
+</pre>
+<p>Now exclude repeats and gb/tp segments that are not near a void</p>
+<pre class="codeinput">voidsListgb = unique([voidsListGb_on;voidsListGb_near]);
 voidsListtp = unique([voidsListTp_on;voidsListTp_near]);
 </pre>
-<pre class="codeoutput">Threshold distance from g.b. (pixels): 4.9532
-</pre>
-<h2 id="35">grain boundary statistics using misorientation distribution function</h2>
+<h2 id="39">grain boundary statistics using misorientation distribution function</h2>
 <p>Compare grain boundary misorientation at voids with the whole sample this is counted per g.b. segment near/on a void, not per void, so big voids that intersect many gb segments will be weighted more than small voids.</p>
 <pre class="codeinput">mdf_voidsGb = calcDensity(gBs(voidsListgb).misorientation);
 mdf_voidsTp = calcDensity(gBs(voidsListtp).misorientation);
@@ -689,7 +714,7 @@ plot(tPGbs(voidsListTp_near),ebsd.plottingConvention,<span class="string">'linec
   ipfKey = ipfColorKey(ori_variable_name)
   plot(ipfKey)
 </pre>
-<img vspace="5" hspace="5" src="example_copper_13.png" alt=""> <h2 id="36">Plot misorientation distributions</h2>
+<img vspace="5" hspace="5" src="example_copper_11.png" alt=""> <h2 id="40">Plot misorientation distributions</h2>
 <p>The next two plot shows that the grain boundaries with around 60 degrees and [111] misorientation are particularly resistant to void formation. These are the sigma-3 twin boundaries in FCC copper.</p>
 <p>However, there are no triple junctions types that are particularly resistant to void formation in this material.</p>
 <pre class="codeinput">figure;
@@ -709,11 +734,16 @@ nextAxis(2,1); plotAxisDistribution(mdf_voidsTp,<span class="string">'colorRange
 nextAxis(2,2); plotAxisDistribution(ebsd(<span class="string">'Copper'</span>).CS,ebsd(<span class="string">'Copper'</span>).CS,<span class="string">'antipodal'</span>,<span class="string">'colorRange'</span>,<span class="string">'equal'</span>); mtexTitle(<span class="string">'Uniform MDF'</span>);
 mtexColorbar;
 </pre>
-<img vspace="5" hspace="5" src="example_copper_14.png" alt=""> <img vspace="5" hspace="5" src="example_copper_15.png" alt=""> <p>This is the end of the grain boundary voids analysis.</p>
+<img vspace="5" hspace="5" src="example_copper_12.png" alt=""> <img vspace="5" hspace="5" src="example_copper_13.png" alt=""> <p>This is the end of the grain boundary voids analysis.</p>
 <pre class="codeinput">t1  = toc;
-disp([<span class="string">'Finished grain boundary voids analysis for '</span> dataName <span class="string">' in '</span> num2str(t1,<span class="string">'%.1f'</span>) <span class="string">' seconds, script ends here.'</span>]);
+disp([<span class="string">'Finished grain boundary voids analysis for '</span> dataName <span class="string">' in '</span> num2str(t1,<span class="string">'%.1f'</span>) <span class="string">' seconds.'</span>]);
+
+save(<span class="string">'example_copper_out.mat'</span>,<span class="string">"-v7.3"</span>);
+
+disp(<span class="string">'Script ends here.'</span>);
 </pre>
-<pre class="codeoutput">Finished grain boundary voids analysis for trueEbsdCopper in 1165.4 seconds, script ends here.
+<pre class="codeoutput">Finished grain boundary voids analysis for trueEbsdCopper in 1202.1 seconds.
+Script ends here.
 </pre>
 <p class="footer">
 <br>
@@ -725,22 +755,28 @@ disp([<span class="string">'Finished grain boundary voids analysis for '</span> 
 ##### SOURCE BEGIN #####
 %% MTEX TrueEBSD for analysing grain boundary voids in a copper polycrystal
 %
-% authors: Vivian Tong, National Physical Laboratory, Teddington, UK; 
+% author: Vivian Tong, National Physical Laboratory, Teddington, UK; 
+% EBSD data: "Void-Microstructure Correlation in Thin Film Copper 
+% Power Semiconductor Metallization using MTEX." Matthias Grabner,
+% Master's Thesis, Graz University of Technology, 2023.
 % Contact: vivian.tong@npl.co.uk
+% 
 %
 % Description:  
-% Example script to run trueEBSD workflow
+% Example script to run trueEBSD workflow and postprocessing to
+% characterise grain boundary voids in a copper polycrystal.
 % MATLAB R2024a and mtex version forked from feature/grain3d, approx mtex6.0.beta3
 %
 % Inputs:  
-% 
+% copper29.h5oina
 %
 % Outputs: 
-% Published html file containing code and outputs
+% Published html file containing code, outputs and figures
+% example_copper_out.mat data file (not released).
 %
 % Version control
-% 20241001 - create TrueEBSD example script using ID29 data (not
-% released).
+% 20241001 - create TrueEBSD example script using copper29 data
+% 20241008 - tidy up published outputs and add voids analyses
 
 clear; close all; home;
 
@@ -1124,7 +1160,7 @@ plot(ebsdCopper,tpNearest); colormap gray; hold on; mtexColorbar;
 plot(tPGbs,'lineColor','m','lineWidth',1);
 
 %% 2. Construct an EBSD map |voidsMapGb| showing the locations of all voids,
-% where void pixels = nearest gbId and not-voids = 0. 
+% where void pixels = nearest gbId and not-voids = nan. 
 voidsMapgb = nan(size(ebsd));
 voidsMapgb(ebsd.phase==ebsd('voids').phase(1))= gbNearest(ebsd.phase==ebsd('voids').phase(1)); %indices to gBs
 %%%
@@ -1167,7 +1203,8 @@ plot(ebsdCopper,voidsDisttp); colormap gray; hold on; mtexColorbar;
 plot(tPGbs(voidsListtp),'lineColor','m','lineWidth',1);
 
 
-%% 4. Separate out voids on the boundary vs close to the boundary (could be
+%%
+% 4. Separate out voids on the boundary vs close to the boundary (could be
 % not on the boundary, could be a image matching error)
 %
 % What does 'close' (vs 'far from the boundary') mean? We can guess a 
@@ -1184,8 +1221,26 @@ voidsListGb_on = voidsMapgb(voidsDistgb<=1 & ~isnan(voidsMapgb));
 voidsListGb_near = voidsMapgb(voidsDistgb>1 & voidsDistgb<=voidsList_threshPix & ~isnan(voidsMapgb)); 
 voidsListGb_notNear = voidsMapgb(voidsDistgb>voidsList_threshPix & ~isnan(voidsMapgb)); 
 
-%Find gb segments in |voidsList_*| that are also triple junctions
 
+%%%
+%precalculate number of void pixels in the map (NOT number of voids!)
+numVoidPix = nnz(~isnan(voidsMapgb));
+assert(nnz(~isnan(voidsMapgb))==nnz(~isnan(voidsMaptp))); %error if there
+% are inconsistent number of void pixels REPLACE_WITH_DASH_DASH likely bug somewhere
+
+voidsListGb_onnearFraction = (numel(voidsListGb_near)+numel(voidsListGb_on))/numVoidPix;
+voidsListGb_notNearFraction = numel(voidsListGb_notNear)/numVoidPix;
+
+%not meaningful to split 'on' and 'near' because only pixels directly
+%intersecting the TP are counted as 'on'
+disp([num2str(voidsListGb_onnearFraction*100) ' % of void pixels are on or near a GB (including GBs attached to TPs).']);
+disp([num2str(voidsListGb_notNearFraction*100) ' % of void pixels are far from a GB.']);
+
+%% 
+% Now do the same for triple junctions, but this involves a few more steps
+% because each triple junction is a triplet of grain boundary segments.
+%
+%Find gb segments in |voidsList_*| that are also triple junctions
 % also include the other g.b. segments in the triple junction
 % and reunite the triple points with their partner segments
 t1 = voidsMaptp(voidsDisttp<=1 & ~isnan(voidsMaptp)); 
@@ -1196,6 +1251,18 @@ t1 = voidsMaptp(voidsDisttp>1 & voidsDisttp<=voidsList_threshPix & ~isnan(voidsM
 voidsListTp_near = sub2ind(size(tPs.boundaryId),repmat(r(:),[1 3]),repmat([1:3],[numel(r) 1]));
 voidsListTp_notNear = voidsMaptp(voidsDisttp>voidsList_threshPix & ~isnan(voidsMaptp)); 
 
+%%%
+% express these as % of void pixels near or far from a TP
+voidsListTp_onnearFraction = (size(voidsListTp_near,1)+size(voidsListTp_on,1))/numVoidPix;
+voidsListTp_notNearFraction = size(voidsListTp_notNear,1)/numVoidPix;
+
+%not meaningful to split 'on' and 'near' because only pixels directly
+%intersecting the TP are counted as 'on'
+disp([num2str(voidsListTp_onnearFraction*100) ' % of void pixels are on or near a TP.']);
+disp([num2str(voidsListTp_notNearFraction*100) ' % of void pixels are far from a TP.']);
+
+
+%%
 % Now exclude repeats and gb/tp segments that are not near a void
 voidsListgb = unique([voidsListGb_on;voidsListGb_near]);
 voidsListtp = unique([voidsListTp_on;voidsListTp_near]);
@@ -1249,9 +1316,11 @@ mtexColorbar;
 %%
 % This is the end of the grain boundary voids analysis. 
 t1  = toc;
-disp(['Finished grain boundary voids analysis for ' dataName ' in ' num2str(t1,'%.1f') ' seconds, script ends here.']);
+disp(['Finished grain boundary voids analysis for ' dataName ' in ' num2str(t1,'%.1f') ' seconds.']);
 
+save('example_copper_out.mat',"-v7.3");
 
+disp('Script ends here.');
 ##### SOURCE END #####
 -->
 </body>

@@ -1,21 +1,27 @@
 %% MTEX TrueEBSD for analysing grain boundary voids in a copper polycrystal
 %
-% authors: Vivian Tong, National Physical Laboratory, Teddington, UK; 
+% author: Vivian Tong, National Physical Laboratory, Teddington, UK; 
+% EBSD data: "Void-Microstructure Correlation in Thin Film Copper 
+% Power Semiconductor Metallization using MTEX." Matthias Grabner,
+% Master's Thesis, Graz University of Technology, 2023.
 % Contact: vivian.tong@npl.co.uk
+% 
 %
 % Description:  
-% Example script to run trueEBSD workflow
+% Example script to run trueEBSD workflow and postprocessing to
+% characterise grain boundary voids in a copper polycrystal.
 % MATLAB R2024a and mtex version forked from feature/grain3d, approx mtex6.0.beta3
 %
 % Inputs:  
-% 
+% copper29.h5oina
 %
 % Outputs: 
-% Published html file containing code and outputs
+% Published html file containing code, outputs and figures
+% example_copper_out.mat data file (not released).
 %
 % Version control
-% 20241001 - create TrueEBSD example script using ID29 data (not
-% released).
+% 20241001 - create TrueEBSD example script using copper29 data
+% 20241008 - tidy up published outputs and add voids analyses
 
 clear; close all; home;
 
@@ -399,7 +405,7 @@ plot(ebsdCopper,tpNearest); colormap gray; hold on; mtexColorbar;
 plot(tPGbs,'lineColor','m','lineWidth',1);
 
 %% 2. Construct an EBSD map |voidsMapGb| showing the locations of all voids,
-% where void pixels = nearest gbId and not-voids = 0. 
+% where void pixels = nearest gbId and not-voids = nan. 
 voidsMapgb = nan(size(ebsd));
 voidsMapgb(ebsd.phase==ebsd('voids').phase(1))= gbNearest(ebsd.phase==ebsd('voids').phase(1)); %indices to gBs
 %%%
@@ -442,7 +448,8 @@ plot(ebsdCopper,voidsDisttp); colormap gray; hold on; mtexColorbar;
 plot(tPGbs(voidsListtp),'lineColor','m','lineWidth',1);
 
 
-%% 4. Separate out voids on the boundary vs close to the boundary (could be
+%%
+% 4. Separate out voids on the boundary vs close to the boundary (could be
 % not on the boundary, could be a image matching error)
 %
 % What does 'close' (vs 'far from the boundary') mean? We can guess a 
@@ -459,8 +466,26 @@ voidsListGb_on = voidsMapgb(voidsDistgb<=1 & ~isnan(voidsMapgb));
 voidsListGb_near = voidsMapgb(voidsDistgb>1 & voidsDistgb<=voidsList_threshPix & ~isnan(voidsMapgb)); 
 voidsListGb_notNear = voidsMapgb(voidsDistgb>voidsList_threshPix & ~isnan(voidsMapgb)); 
 
-%Find gb segments in |voidsList_*| that are also triple junctions
 
+%%%
+%precalculate number of void pixels in the map (NOT number of voids!)
+numVoidPix = nnz(~isnan(voidsMapgb));
+assert(nnz(~isnan(voidsMapgb))==nnz(~isnan(voidsMaptp))); %error if there
+% are inconsistent number of void pixels -- likely bug somewhere
+
+voidsListGb_onnearFraction = (numel(voidsListGb_near)+numel(voidsListGb_on))/numVoidPix;
+voidsListGb_notNearFraction = numel(voidsListGb_notNear)/numVoidPix;
+
+%not meaningful to split 'on' and 'near' because only pixels directly
+%intersecting the TP are counted as 'on'
+disp([num2str(voidsListGb_onnearFraction*100) ' % of void pixels are on or near a GB (including GBs attached to TPs).']);
+disp([num2str(voidsListGb_notNearFraction*100) ' % of void pixels are far from a GB.']);
+
+%% 
+% Now do the same for triple junctions, but this involves a few more steps
+% because each triple junction is a triplet of grain boundary segments.
+%
+%Find gb segments in |voidsList_*| that are also triple junctions
 % also include the other g.b. segments in the triple junction
 % and reunite the triple points with their partner segments
 t1 = voidsMaptp(voidsDisttp<=1 & ~isnan(voidsMaptp)); 
@@ -471,6 +496,18 @@ t1 = voidsMaptp(voidsDisttp>1 & voidsDisttp<=voidsList_threshPix & ~isnan(voidsM
 voidsListTp_near = sub2ind(size(tPs.boundaryId),repmat(r(:),[1 3]),repmat([1:3],[numel(r) 1]));
 voidsListTp_notNear = voidsMaptp(voidsDisttp>voidsList_threshPix & ~isnan(voidsMaptp)); 
 
+%%%
+% express these as % of void pixels near or far from a TP
+voidsListTp_onnearFraction = (size(voidsListTp_near,1)+size(voidsListTp_on,1))/numVoidPix;
+voidsListTp_notNearFraction = size(voidsListTp_notNear,1)/numVoidPix;
+
+%not meaningful to split 'on' and 'near' because only pixels directly
+%intersecting the TP are counted as 'on'
+disp([num2str(voidsListTp_onnearFraction*100) ' % of void pixels are on or near a TP.']);
+disp([num2str(voidsListTp_notNearFraction*100) ' % of void pixels are far from a TP.']);
+
+
+%%
 % Now exclude repeats and gb/tp segments that are not near a void
 voidsListgb = unique([voidsListGb_on;voidsListGb_near]);
 voidsListtp = unique([voidsListTp_on;voidsListTp_near]);
@@ -524,5 +561,8 @@ mtexColorbar;
 %%
 % This is the end of the grain boundary voids analysis. 
 t1  = toc;
-disp(['Finished grain boundary voids analysis for ' dataName ' in ' num2str(t1,'%.1f') ' seconds, script ends here.']);
+disp(['Finished grain boundary voids analysis for ' dataName ' in ' num2str(t1,'%.1f') ' seconds.']);
 
+save('example_copper_out.mat',"-v7.3");
+
+disp('Script ends here.');
