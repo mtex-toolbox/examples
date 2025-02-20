@@ -1,4 +1,4 @@
-classdef trueEbsd 
+classdef trueEbsd < handle
     % @trueEbsd class constructor 
     % class guiding through the trueEBSD image correction process
     %
@@ -25,24 +25,24 @@ classdef trueEbsd
     % distortedImg parentGrainReconstructor 
     %
 
-    properties %props we define at the start
-        imgList = {distortedImg} %cell array of distortedImg objects        
-        resizedList = {distortedImg} %pixel sizes and FOV matched
-        undistortedList = {distortedImg} %undistorted
-        shifts = {}
-    end %properties
+    properties 
+      imgList         = {distortedImg} % cell array of distortedImg objects
+      resizedList     = {distortedImg} % pixel sizes and FOV matched
+      undistortedList = {distortedImg} % undistorted
+      shifts = {}
+    end 
 
     methods
-        % constructor
-        function job = trueEbsd(varargin)
-            nImgs=numel(varargin);
-            job.imgList=cell(nImgs,1);    
-             for n=1:nImgs
-                % check they're the correct type
-                job.imgList{n} = argin_check(varargin{n},{'distortedImg'});       
-            end
-        end % constructor function
+      
+      function job = trueEbsd(varargin)
+        nImgs=numel(varargin);
+        job.imgList=cell(nImgs,1);
+        for n=1:nImgs
+          % check they're the correct type
+          job.imgList{n} = argin_check(varargin{n},{'distortedImg'});
+        end
+      end 
 
-    end %methods
+    end 
 
-end %classdef
+end 

@@ -1,4 +1,19 @@
 function [RegOutput]= fRunDIC(Image_ref,Image_test,setXCF,fitfunc)
+%
+% Input
+%  Image_ref - reference image
+%  Image_test - test image
+%  setXCF - cross correlation options (ROISize, NumROI, ),
+%  setXCF.ROISize - 
+%  setXCF.NumROI - 
+%  setXCF.XCFMesh - 
+%  setXCF.xcfImg - 'edge'
+%  fitfunc - ('poly11')
+%
+% Output
+%  RefOutput
+%
+
 %% Unpack inputs
 ROI.size_pass_1 =setXCF.ROISize;
 numROI = setXCF.NumROI;
@@ -9,18 +24,25 @@ XCF_mesh = setXCF.XCFMesh; % XCF mesh size default value is 250
 % set up the filter windows, boundary
 % filters = round([log2(ROI.size_pass_1)/2,log2(ROI.size_pass_1)/4,2*log2(ROI.size_pass_1),log2(ROI.size_pass_1)]);
 Filters_setting = [0;0;round(ROI.size_pass_1/2);round(ROI.size_pass_1/4)];
+
 [rowvals,colvals]=find(~(isnan(Image_ref)).*(~isnan(Image_test))==1);
 xmin=min(colvals);
 ymin=min(rowvals);
 xmax=max(colvals);
 ymax=max(rowvals);
 boundary = [xmin+1,ymin+1,xmax-xmin-1,ymax-ymin-1]; %[left edge top edge width height], like imcrop.
+
 [FFTfilter,hfilter] = fFilters(ROI.size_pass_1,Filters_setting);
+
 % spread out the subregions in the defined ROI and set up the position of ROIs
 [ROI.position_X_pass_1, ROI.position_Y_pass_1,ROI.num_x_pass_1,ROI.num_y_pass_1, ROI.coordinator_pass_1, ROI.num_pass_1] = fDIC_ROI_position(ROI.size_pass_1,numROI,boundary);
 
 % perform the XCF and determine shift in x  shift in y and peak height
-[ROI.Shift_X_1,ROI.Shift_Y_1,CCmax_1] = fDIC_xcf_mat_mex(Image_ref,Image_test,ROI,Filters_setting,XCF_mesh,hfilter,FFTfilter);
+try
+  [ROI.Shift_X_1,ROI.Shift_Y_1,CCmax_1] = fDIC_xcf_mat_mex(Image_ref,Image_test,ROI,Filters_setting,XCF_mesh,hfilter,FFTfilter);
+catch
+  [ROI.Shift_X_1,ROI.Shift_Y_1,CCmax_1] = fDIC_xcf_mat(Image_ref,Image_test,ROI,Filters_setting,XCF_mesh,hfilter,FFTfilter);
+end
 
 %% fit a surface to the shift vector
 % figure, imagesc(ROI.Shift_X_1); axis equal; caxis([-15 -5]);
@@ -28,7 +50,7 @@ boundary = [xmin+1,ymin+1,xmax-xmin-1,ymax-ymin-1]; %[left edge top edge width h
 
 % ROI.position_X_pass_1 and ROI.position_Y_pass_1 are the ROI centre locations
 switch fitfunc
-    case 'poly11'
+  case 'poly11'
     %remove values with NaN XCF height
     ROI.Shift_X_1=ROI.Shift_X_1(~isnan(CCmax_1));
     ROI.Shift_Y_1=ROI.Shift_Y_1(~isnan(CCmax_1));
