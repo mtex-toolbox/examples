@@ -148,9 +148,7 @@ methods
         %do nothing
       else
         disImg.ebsd = gridify(disImg.ebsd);
-        if isa(disImg.ebsd,'EBSDhex')
-          error('Square grid EBSD maps only');
-        end
+        assert(~isa(disImg.ebsd,'EBSDhex'),'Square grid EBSD maps only');
       end
       disImg.dx = disImg.ebsd.dx;
       disImg.dy = disImg.ebsd.dy;
@@ -225,13 +223,25 @@ methods
     end
   end
 
-  function plot(distImg,varargin)
-    optiondraw(imagesc('XData',distImg.dx.*(1:size(distImg.img,2)),...
-      'YData',distImg.dy*(1:size(distImg.img,1)),...
-      'CData',distImg.img),varargin{:});
+  function t = plot(img,varargin)
 
-    colormap gray; axis image on ij;
+    if isscalar(img)
+
+      t = optiondraw(imagesc('XData',img.dx.*(1:size(img.img,2)),...
+        'YData',img.dy*(1:size(img.img,1)),...
+        'CData',img.img),varargin{:});
+
+      colormap gray; axis image on ij;
+    else
+      figure('WindowState', 'maximized');
+      t = tiledlayout('flow','TileSpacing','tight','Padding','tight');
+      for n = 1:numel(img)
+        nexttile;
+        plot(img(n))
+      end
+      linkaxes;
+    end
   end
-
 end
+
 end

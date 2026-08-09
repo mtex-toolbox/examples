@@ -1,8 +1,8 @@
 function undistort(job)
 % 
 % Syntax
-% job = undistort(job)
-% use this after running calcShifts(job)
+% job.undistort
+% use this after running job.calcShifts
 %
 % Inputs
 % job.resizedList{1:n};

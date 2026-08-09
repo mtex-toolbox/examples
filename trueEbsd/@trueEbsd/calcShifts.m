@@ -4,8 +4,8 @@ function calcShifts(job, varargin)
 % outputs job.shifts{imgList#}{distortionModel#}.shifts
 %
 % Syntax:
-% job = calcShifts(job);
-% job = calcShifts(job.'fitErr');
+% job.calcShifts;
+% job.calcShifts('fitErr');
 %
 % Description:
 %   1. Get job.resizedList{n}.edge for image cross-correlation

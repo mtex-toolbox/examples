@@ -23,7 +23,6 @@
 % 20241001 - create TrueEBSD example script using copper29 data
 % 20241008 - tidy up published outputs and add voids analyses
 
-clear; close all; home;
 
 % TrueEBSD version ID 
 vId = '20240916 / app version 1.2.1';
@@ -40,7 +39,7 @@ addpath(genpath(cd));
 %
 % # Band contrast (|ebsd.bc|) is used as the image for the EBSD map.
 %
-% # |fsd1B| is a colour image from the three FSD detectors mounted at
+% # |fsd1B| is a color image from the three FSD detectors mounted at
 % the bottom of the EBSD camera, and the EBSD camera is retracted by 40 mm
 % relative to the EBSD map acquisition position;
 %
@@ -136,7 +135,7 @@ disp(['Finished set up trueEBSD job for ' dataName ' in ' num2str(t1,'%.1f') ' s
 % |job.resizedList{:}|.
 
 pixSzIn = 0; % target pixel length in microns, or 0 to default to smallest common pixel size
-job = pixelSizeMatch(job,pixSzIn);
+job.pixelSizeMatch(pixSzIn)
 
 %%%
 % Now |job| has a new property |job.resizedList|, which is where the outputs of
@@ -179,7 +178,7 @@ linkaxes;
 
 %%% Compute image shifts
 
-job = calcShifts(job,'fitErr');
+job.calcShifts('fitErr')
 
 %%%
 % Now job has a new property job.shifts, which is where the outputs of
@@ -196,7 +195,7 @@ disp(['Finished calculate image shifts and fit distortion models for ' dataName 
 % job.undistortedList which contains aligned image data. Now all pixels in
 % this image sequence can be directly overlaid.
 
-job = undistort(job);
+job.undistort
 
 %% Plot images after distortion correction
 
@@ -557,12 +556,3 @@ nextAxis(2,1); plotAxisDistribution(mdf_voidsTp,'colorRange','equal'); mtexTitle
 nextAxis(2,2); plotAxisDistribution(ebsd('Copper').CS,ebsd('Copper').CS,'antipodal','colorRange','equal'); mtexTitle('Uniform MDF');
 mtexColorbar;
 
-
-%%
-% This is the end of the grain boundary voids analysis. 
-t1  = toc;
-disp(['Finished grain boundary voids analysis for ' dataName ' in ' num2str(t1,'%.1f') ' seconds.']);
-
-save('example_copper_out.mat',"-v7.3");
-
-disp('Script ends here.');
