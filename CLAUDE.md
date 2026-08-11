@@ -44,6 +44,46 @@ run('trueEbsd/example_WCCo.m')                % downloads its data via mtexdata
   Image Processing, Curve Fitting, and Statistics and Machine Learning
   toolboxes, and takes ~11 minutes to run.
 
+### Running examples headlessly (agents)
+
+The scripts are meant for interactive use, but an agent checking that they still
+run needs a headless MATLAB. Use `/opt/matlab-2024b/bin/matlab`, **not** the
+`matlab` on `$PATH` — that resolves to an R2025b install which segfaults in its
+licensing library at startup on this machine (as do the other R2025b/R2026a
+trees under `/opt`). This is unrelated to MTEX or to these scripts.
+
+Prefer the persistent MATLAB session provided by the sibling MTEX repo over
+spawning `matlab -batch` per script; it pays MTEX startup once (~40 s) and then
+answers in a few seconds. It is documented in `../master/CLAUDE.md`; from here:
+
+```bash
+B=/home/hielscher/mtex/master/docs/agents/matlab-bridge
+$B/setup.sh          # one-time: Python 3.12 venv + MATLAB Engine API
+$B/start_session.sh  # start the shared session, waits for readiness
+$B/.venv/bin/python $B/matlab_run.py "run('/home/hielscher/mtex/examples/ExGrains/ExIceSphericity.m')"
+$B/stop_session.sh   # stop when done — it holds a license checkout while alive
+```
+
+What matters when driving *these* scripts through it:
+
+- `matlab_run.py` evaluates in the **base workspace**, so `mtexdata` works — the
+  hazard noted above applies to wrapper *functions*, not to the bridge.
+- The session's working directory is the MTEX repo root (`mtex/master`), not
+  this repo. The published examples don't care, because `mtexExamplePath`
+  resolves to this directory. `JAC-Creuziger/` does — prefix those with
+  `cd('/home/hielscher/mtex/examples/JAC-Creuziger');`.
+- Every call starts with `clear variables; close all`, so one script per call;
+  a script cannot be split across calls.
+- The session's MATLAB path is fixed at startup. Restart it after adding a new
+  folder — e.g. `addpath(genpath(...))` for the TrueEBSD toolbox is better
+  passed in the same call as the `run`, since it will not survive to the next.
+- Falling back to `matlab -batch "…"`: the command must be a **single line**.
+  A leading newline makes MATLAB report `No MATLAB command specified for -batch
+  command line argument` and exit without running anything.
+
+Headless runs still build figures; nothing here needs a display. What they
+cannot check is whether a figure *looks* right — only that the script completes.
+
 ## Documentation build
 
 These scripts are published to HTML by the separate `mtex/makeDoc` toolbox (see
