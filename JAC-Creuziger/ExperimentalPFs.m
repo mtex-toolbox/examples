@@ -67,6 +67,12 @@ fprintf(fileID,'%12s\t %5s\t %5s\n','Name','TI', 'Ent');
 fclose(fileID);
 
 %% read in 4 experimental data sets
+%
+% Each pole figure is rebuilt with its crystal direction stated explicitly.
+% loadPoleFigure_generic otherwise guesses the Miller index from the file
+% name, which reads the 426 of '110F-Creuz426sym.sum' as a second crystal
+% direction and leaves a pole figure that calcODF cannot invert.
+
 for i=1:4
 
     
@@ -80,18 +86,18 @@ if i==1
     pf1T=loadPoleFigure_generic([pname '110F-d4.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 3]);
     pf1B=loadPoleFigure_generic([pname '110F-d4.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 4]);
     pf1 = correct(pf1T,'background',pf1B);
-    pf1.SS=ss;
+    pf1 = PoleFigure(Miller(1,1,0,cs),pf1.r,pf1.intensities,cs,ss);
 
 
     pf2T=loadPoleFigure_generic([pname '200F-d4.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 3]);
     pf2B=loadPoleFigure_generic([pname '200F-d4.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 4]);
     pf2 = correct(pf2T,'background',pf2B);
-    pf2.SS=ss;
+    pf2 = PoleFigure(Miller(2,0,0,cs),pf2.r,pf2.intensities,cs,ss);
 
     pf3T=loadPoleFigure_generic([pname '211F-d4.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 3]);
     pf3B=loadPoleFigure_generic([pname '211F-d4.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 4]);
     pf3 = correct(pf3T,'background',pf3B);
-    pf3.SS=ss;
+    pf3 = PoleFigure(Miller(2,1,1,cs),pf3.r,pf3.intensities,cs,ss);
 
     pfF=[pf1,pf2,pf3];
     %figure; plot(pfF); colorbar;
@@ -99,7 +105,7 @@ if i==1
     odf = calcODF(pfF, cs,ss, 'halfwidth',5*degree, 'resolution',5*degree);
 
 
-    %figure; plot(odf,'phi2','sections',18,'projection','plain','minmax', 'off',cs,ss);CLim(gcm,[0, 4]);mtexColorbar;
+    %figure; plot(odf,'phi2','sections',18,'projection','plain','minmax', 'off',cs,ss);setColorRange(gcm,[0, 4]);mtexColorbar;
 
 elseif i==2
 %TRIP 700 Austenite
@@ -111,18 +117,18 @@ elseif i==2
     pf1T=loadPoleFigure_generic([pname '200A-d4.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 3]);
     pf1B=loadPoleFigure_generic([pname '200A-d4.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 4]);
     pf1 = correct(pf1T,'background',pf1B);
-    pf1.SS=ss;
+    pf1 = PoleFigure(Miller(2,0,0,cs),pf1.r,pf1.intensities,cs,ss);
 
 
     pf2T=loadPoleFigure_generic([pname '220A-d4.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 3]);
     pf2B=loadPoleFigure_generic([pname '220A-d4.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 4]);
     pf2 = correct(pf2T,'background',pf2B);
-    pf2.SS=ss;
+    pf2 = PoleFigure(Miller(2,2,0,cs),pf2.r,pf2.intensities,cs,ss);
 
     pf3T=loadPoleFigure_generic([pname '311A-d4.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 3]);
     pf3B=loadPoleFigure_generic([pname '311A-d4.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 4]);
     pf3 = correct(pf3T,'background',pf3B);
-    pf3.SS=ss;
+    pf3 = PoleFigure(Miller(3,1,1,cs),pf3.r,pf3.intensities,cs,ss);
 
     pfF=[pf1,pf2,pf3];
     %figure; plot(pfF); colorbar;
@@ -140,13 +146,13 @@ elseif i==3
     pf1T=loadPoleFigure_generic([pname '200A-Creuz427sym.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 3]);
     pf1B=loadPoleFigure_generic([pname '200A-Creuz427sym.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 4]);
     pf1 = correct(pf1T,'background',pf1B);
-    pf1.SS=ss;
+    pf1 = PoleFigure(Miller(2,0,0,cs),pf1.r,pf1.intensities,cs,ss);
 
 
     pf2T=loadPoleFigure_generic([pname '220A-Creuz429sym.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 3]);
     pf2B=loadPoleFigure_generic([pname '220A-Creuz429sym.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 4]);
     pf2 = correct(pf2T,'background',pf2B);
-    pf2.SS=ss;
+    pf2 = PoleFigure(Miller(2,2,0,cs),pf2.r,pf2.intensities,cs,ss);
 
 
     pfF=[pf1,pf2];
@@ -165,18 +171,18 @@ elseif i==4
     pf1T=loadPoleFigure_generic([pname '110F-Creuz426sym.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 3]);
     pf1B=loadPoleFigure_generic([pname '110F-Creuz426sym.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 4]);
     pf1 = correct(pf1T,'background',pf1B);
-    pf1.SS=ss;
+    pf1 = PoleFigure(Miller(1,1,0,cs),pf1.r,pf1.intensities,cs,ss);
 
 
     pf2T=loadPoleFigure_generic([pname '200F-Creuz428sym.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 3]);
     pf2B=loadPoleFigure_generic([pname '200F-Creuz428sym.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 4]);
     pf2 = correct(pf2T,'background',pf2B);
-    pf2.SS=ss;
+    pf2 = PoleFigure(Miller(2,0,0,cs),pf2.r,pf2.intensities,cs,ss);
 
     pf3T=loadPoleFigure_generic([pname '211F-Creuz431sym.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 3]);
     pf3B=loadPoleFigure_generic([pname '211F-Creuz431sym.sum'], 'HEADER',1,'degree','ColumnNames',{'polar angle','azimuth angle','intensity'},'Columns',[2 1 4]);
     pf3 = correct(pf3T,'background',pf3B);
-    pf3.SS=ss;
+    pf3 = PoleFigure(Miller(2,1,1,cs),pf3.r,pf3.intensities,cs,ss);
 
     pfF=[pf1,pf2,pf3];
     %figure; plot(pfF); colorbar;
@@ -199,7 +205,7 @@ if strcmp(bname,'TRIP780F')
     % creating a new figure seems to work, but the export needs to move
     % before creating a new figure
     figure; run('ColorMap8.m')
-    figure; plot(odf,'phi2',[45]*degree,'projection','plain','minmax', 'off',cs,ss);CLim(gcm,[0, 8]);mtexColorbar;
+    figure; plot(odf,'phi2',[45]*degree,'projection','plain','minmax', 'off',cs,ss);setColorRange(gcm,[0, 8]);mtexColorbar;
     %Export figure to file
     export_fig(strcat(savepath,'/',bname,'-phi2-45ODF.tiff'),'-r150')  
     figure; run('ColorMap4.m')    
@@ -210,16 +216,16 @@ else
     %Different plot options
     
     % Plot a series of Phi2 sections
-    %figure; plot(odf,'phi2','sections',18,'projection','plain','minmax', 'off',cs,ss);CLim(gcm,[0, 4]);mtexColorbar;
+    %figure; plot(odf,'phi2','sections',18,'projection','plain','minmax', 'off',cs,ss);setColorRange(gcm,[0, 4]);mtexColorbar;
 
     % Plot only the Phi2=45 section
-    figure; plot(odf,'phi2',[45]*degree,'projection','plain','minmax', 'off',cs,ss);CLim(gcm,[0, 4]);mtexColorbar;
+    figure; plot(odf,'phi2',[45]*degree,'projection','plain','minmax', 'off',cs,ss);setColorRange(gcm,[0, 4]);mtexColorbar;
 
     % Plot only the Phi2=45 section with annotation
-    %figure; plot(odf,'phi2',[45]*degree,'projection','plain','silent',cs,ss,'FontSize',36);CLim(gcm,[0, 4]);mtexColorbar;
+    %figure; plot(odf,'phi2',[45]*degree,'projection','plain','silent',cs,ss,'FontSize',36);setColorRange(gcm,[0, 4]);mtexColorbar;
 
     %plot without colorbar
-    %figure; plot(odf,'phi2',[45]*degree,'projection','plain','silent',cs,ss,'FontSize',1);CLim(gcm,[0, 4]);mtexColorbar;
+    %figure; plot(odf,'phi2',[45]*degree,'projection','plain','silent',cs,ss,'FontSize',1);setColorRange(gcm,[0, 4]);mtexColorbar;
     
     %Export figure to file
     export_fig(strcat(savepath,'/',bname,'-phi2-45ODF.tiff'),'-r150')  
@@ -240,12 +246,12 @@ end
 
 if strcmp(phase,'austenite')
     pf = calcPoleFigure(odf,h_austenite,cs,ss);
-    figure; plotPDF(odf,h_austenite,cs,ss, 'projection','eangle', 'antipodal');CLim(gcm,[0, 4]);mtexColorbar;
-    %figure; plotPDF(odf,h_austenite,cs,ss, 'antipodal','grid','grid_res',30*degree,'projection','eangle');CLim(gcm,[0, 4]);mtexColorbar;
+    figure; plotPDF(odf,h_austenite,cs,ss, 'projection','eangle', 'antipodal');setColorRange(gcm,[0, 4]);mtexColorbar;
+    %figure; plotPDF(odf,h_austenite,cs,ss, 'antipodal','grid','grid_res',30*degree,'projection','eangle');setColorRange(gcm,[0, 4]);mtexColorbar;
     
 elseif strcmp(phase,'ferrite')
     pf = calcPoleFigure(odf,h_ferrite);
-    figure; plotPDF(odf,h_ferrite, cs,ss, 'projection','eangle', 'antipodal');CLim(gcm,[0, 4]);mtexColorbar;
+    figure; plotPDF(odf,h_ferrite, cs,ss, 'projection','eangle', 'antipodal');setColorRange(gcm,[0, 4]);mtexColorbar;
 else
     'something has gone wrong'
 end
@@ -338,7 +344,7 @@ end
 %figure
 %plotPDF(odf30,h,'contourf',[1.87,1.25,2.5])
 %plotPDF(odf,h)
-%figure; plotPDF(odf,h,'contourf',[1.0,1.2,1.5,2]);CLim(gcm,[0, 2.5]);mtexColorbar;
+%figure; plotPDF(odf,h,'contourf',[1.0,1.2,1.5,2]);setColorRange(gcm,[0, 2.5]);mtexColorbar;
 
 %setMTEXpref('EulerAngleConvention','ZYZ')
 %plot(odf30,'sections',18, 'colorbar')

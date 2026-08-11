@@ -224,8 +224,8 @@ disp('Create Plots')
 
 figure; 
 plot(odf,'phi2',[45]*degree,'projection','plain','silent',cs,ss,'FontSize',20);
-%CLim(gcm,[0, 4]);
-CLim(gcm,[0, 20]); %for ColorMap20.m
+%setColorRange(gcm,[0, 4]);
+setColorRange(gcm,[0, 20]); %for ColorMap20.m
 mtexColorbar; %causes some cropping of the scale
 fig = gcf;
 fig.PaperPositionMode = 'auto';
@@ -241,12 +241,12 @@ saveas(fig,fullfile(AddFiguresDir,strcat(bname,'-HW', tmp,'-phi2ODF.png')))
 
 
 
-%figure; plot(odf,'phi2',[45]*degree,'projection','plain','silent',cs,ss,'FontSize',20);CLim(gcm,[0, 4]);mtexColorbar;
+%figure; plot(odf,'phi2',[45]*degree,'projection','plain','silent',cs,ss,'FontSize',20);setColorRange(gcm,[0, 4]);mtexColorbar;
 %export_fig(strcat(savepath,'/',bname,'-phi2-45ODF.png'),'-r300')  
 
 
 %ODF plot
-%figure; plot(odf,'phi2','sections',18,'projection','plain','minmax', 'off',cs,ss);CLim(gcm,[0, 4]);mtexColorbar;
+%figure; plot(odf,'phi2','sections',18,'projection','plain','minmax', 'off',cs,ss);setColorRange(gcm,[0, 4]);mtexColorbar;
 %fig = gcf;
 %fig.PaperPositionMode = 'auto';
 %saveas(fig,fullfile(AddFiguresDir,strcat(bname,'-HW', tmp,'-phi2ODF.png')))

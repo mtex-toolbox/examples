@@ -17,9 +17,9 @@ HW=20*degree;
 
 cs = crystalSymmetry('m-3m');
 ss = specimenSymmetry('orthorhombic');
-Cube = orientation('Miller',[0 0 1],[1 0 0],cs,ss);
+Cube = orientation.byMiller([0 0 1],[1 0 0],cs,ss);
 odf = unimodalODF(Cube,'halfwidth',HW,cs,ss);
-figure; plot(odf,'phi2',[45]*degree,'projection','plain','minmax', 'off',cs,ss);CLim(gcm,[0, 4]);mtexColorbar;
+figure; plot(odf,'phi2',[45]*degree,'projection','plain','minmax', 'off',cs,ss);setColorRange(gcm,[0, 4]);mtexColorbar;
 export_fig(strcat(savepath,'/','ColorMapExample-phi2-45ODF.tiff'),'-r300') 
 %export_fig(strcat('ColorMapExample-phi2-45ODF.tiff'),'-r300') 
 %}

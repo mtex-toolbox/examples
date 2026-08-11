@@ -65,14 +65,14 @@ Wad_Child_mori = unique(Fo2Wa.variants * inv(Fo2Wa))
 %
 % Wad_Wad misorientation peak - N.B. This not an variant or child rather a twin
 % Data analysis from an experiment at T = 1600C & P = 16 GPa
-gB_Child_Child = orientation('axis',Miller(0,0,1,Wad_CS,'uvw'),'angle',90.0*degree,Wad_CS,Wad_CS)
+gB_Child_Child = orientation.byAxisAngle(Miller(0,0,1,Wad_CS,'uvw'),90.0*degree,Wad_CS,Wad_CS)
 %**************************************************************************
 %% Parent (Forsterite) to 4 Daughter (Wadsleyite) variants 
 % Mis = inv(O1) * O2
 
 % all crystallographically equivalent orientations using symmetry of Parent
 % Parent (Forsterite) reference orientation Euler (0,0,0)
-ori_Fo_Parent = orientation('Euler',0,0,0,Fo_CS)
+ori_Fo_Parent = orientation.byEuler(0,0,0,Fo_CS)
 % all crystallographically equivalent Child orientations
 ori_Wad_Childs = symmetrise(ori_Fo_Parent) * inv(Fo2Wa)
 

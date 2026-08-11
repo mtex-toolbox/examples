@@ -231,7 +231,7 @@ disp('Create Plots')
 
 figure; 
 plot(odf,'phi2',[45]*degree,'projection','plain','silent',cs,ss,'FontSize',20);
-CLim(gcm,[0, 4]);
+setColorRange(gcm,[0, 4]);
 mtexColorbar;
 fig = gcf;
 fig.PaperPositionMode = 'auto';
@@ -247,12 +247,12 @@ saveas(fig,fullfile(AddFiguresDir,strcat(bname,'-HW', tmp,'-phi2ODF.png')))
 
 
 
-%figure; plot(odf,'phi2',[45]*degree,'projection','plain','silent',cs,ss,'FontSize',20);CLim(gcm,[0, 4]);mtexColorbar;
+%figure; plot(odf,'phi2',[45]*degree,'projection','plain','silent',cs,ss,'FontSize',20);setColorRange(gcm,[0, 4]);mtexColorbar;
 %export_fig(strcat(savepath,'/',bname,'-phi2-45ODF.png'),'-r300')  
 
 
 %ODF plot
-%figure; plot(odf,'phi2','sections',18,'projection','plain','minmax', 'off',cs,ss);CLim(gcm,[0, 4]);mtexColorbar;
+%figure; plot(odf,'phi2','sections',18,'projection','plain','minmax', 'off',cs,ss);setColorRange(gcm,[0, 4]);mtexColorbar;
 %fig = gcf;
 %fig.PaperPositionMode = 'auto';
 %saveas(fig,fullfile(AddFiguresDir,strcat(bname,'-HW', tmp,'-phi2ODF.png')))
@@ -343,7 +343,7 @@ end
 %figure
 %plotPDF(odf30,h,'contourf',[1.87,1.25,2.5])
 %plotPDF(odf,h)
-%figure; plotPDF(odf,h,'contourf',[1.0,1.2,1.5,2]);CLim(gcm,[0, 2.5]);mtexColorbar;
+%figure; plotPDF(odf,h,'contourf',[1.0,1.2,1.5,2]);setColorRange(gcm,[0, 2.5]);mtexColorbar;
 
 %setMTEXpref('EulerAngleConvention','ZYZ')
 %plot(odf30,'sections',18, 'colorbar')
