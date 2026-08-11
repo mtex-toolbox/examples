@@ -1,227 +1,257 @@
-%% MTEX TrueEBSD for WC Contiguity calculation
+%% TrueEBSD distortion correction on a WC-Co composite
 %
-% authors: Vivian Tong, National Physical Laboratory, Teddington, UK; 
-% Stefan Olovsjö, Seco Tools AB, R&D Materials and Technology, 737 82
-% Fagersta, Sweden;
-% Contact: vivian.tong@npl.co.uk
+% Authors: Vivian Tong; Stefan Olovsjö, Seco Tools AB, R&D Materials and
+% Technology, 737 82 Fagersta, Sweden.
+% Contact: vivian.tong@extern.tu-freiberg.de
 %
-% Description:  
-% Example script to run trueEBSD workflow
+% TrueEBSD spatially aligns an EBSD map and SEM images of the same sample
+% area, correcting the distortions between them so that every pixel
+% overlays. The method is described in Tong et al.,
+% <http://arxiv.org/abs/2605.00703 arXiv 2605.00703>.
+%
+% This script needs the TrueEBSD toolbox, which is *not* part of MTEX and
+% is distributed separately under Apache-2.0:
+%
+%   <https://github.com/vtvivian/mtex-trueebsd>
+%
+%   addpath(genpath('<path to mtex-trueEbsd>'))
+%
+% Use the |mtex7-compat| branch with MTEX 7. Beyond MTEX it requires MATLAB
+% R2024a or newer and the Image Processing, Curve Fitting, and Statistics
+% and Machine Learning toolboxes. Runtime is minutes, not seconds.
 
 %% Data Import
-% Begin by loading an EBSD map with a list of images we want to use
-% together with the EBSD map data.
-
-mtexdata trueEbsdWCCo
-
-%%
-% This contains an EBSD map of a WC-Co 
-% composite acquired at 20 kV accelerating voltage, and four SEM images of 
-% the same sample area within ebsd.opt.trueEbsdImgs: 
+% Begin by loading an EBSD map together with the list of images we want to
+% use alongside it. This dataset is an EBSD map of a WC-Co composite
+% acquired at 20 kV accelerating voltage, plus four SEM images of the same
+% sample area stored in |ebsd.opt.trueEbsdImgs|:
 %
 % # Band contrast (|ebsd.bc|) is used as the image for the EBSD map.
 %
-% # |fsdB3| is a color image from the three FSD detectors mounted at
-% the bottom of the EBSD camera, and the EBSD camera is retracted by 20 mm
-% relative to the EBSD map acquisition position;
+% # |fsdB3| is a colour image from the three FSD detectors mounted at the
+% bottom of the EBSD camera, with the camera retracted by 20 mm relative to
+% the EBSD map acquisition position;
 %
-% # |fsdT3| is a greyscale image from the same beam scan as fsdB3 and 
+% # |fsdT3| is a greyscale image from the same beam scan as |fsdB3|, from
 % the FSD detectors at the top of the EBSD camera;
 %
 % # |fsdT1| is a greyscale image from the FSD detectors at the top of the
-% EBSD camera at the EBSD map acquisition position;
+% EBSD camera, at the EBSD map acquisition position;
 %
 % # |fsdT10| is a greyscale image from the FSD detectors at the top of the
-% EBSD camera, in EBSD map acquisition position, and the electron beam 
+% EBSD camera, in EBSD map acquisition position, with the electron beam
 % accelerating voltage lowered to 10 kV.
 %
-% # |ebsd.opt.trueEbsdImgs.pixSzImg| is the image pixel size in microns for
-% all four images.
+% * |ebsd.opt.trueEbsdImgs.pixSzImg| is the image pixel size in microns,
+% the same for all four images.
 
-img = ebsd.opt.trueEbsdImgs
+mtexdata trueEbsdWCCo
 
-%% Set up TrueEBSD job
-% @distortedImg imgList{:} is a TrueEBSD class containing information 
-% about an image or EBSD map and its distortion types within the 
-% TrueEBSD workflow.
+display(ebsd)
+display(ebsd.opt.trueEbsdImgs)
+
+%% Set up the TrueEBSD job
+% A <distortedImg.distortedImg.html distortedImg> holds one image or EBSD
+% map, its pixel size, its plotting convention, and the name of the
+% distortion separating it from the *next* entry in the sequence. The
+% sequence runs from most distorted to ground truth, and the reference
+% image carries |'true'|.
+
+% some simple image denoising first
+img = ebsd.opt.trueEbsdImgs;
+img.fsdB3  = rescale(imboxfilt(img.fsdB3,3));
+img.fsdT3  = rescale(imboxfilt(img.fsdT3,3));
+img.fsdT1  = rescale(imboxfilt(img.fsdT1,3));
+img.fsdT10 = rescale(imboxfilt(img.fsdT10,3));
+
+imgList = createArray(5,1,'distortedImg');
+imgList(1) = distortedImg('bc','shift-drift', ebsd, 'how2plot', ebsd.how2plot, ...
+  'highContrast',1, 'edgePadWidth',3);
+imgList(2) = distortedImg(img.fsdB3, 'true',  'dxy', img.pixSzImg, 'highContrast',1, 'edgePadWidth',5);
+imgList(3) = distortedImg(img.fsdT3, 'shift', 'dxy', img.pixSzImg, 'highContrast',1, 'edgePadWidth',5);
+imgList(4) = distortedImg(img.fsdT1, 'tilt',  'dxy', img.pixSzImg, 'highContrast',1, 'edgePadWidth',5);
+imgList(5) = distortedImg(img.fsdT10,'true',  'dxy', img.pixSzImg, 'highContrast',1, 'edgePadWidth',3);
+
+%%%
+% The job is a <trueEbsd.trueEbsd.html trueEbsd> object built from that one
+% sequence. It is a *value* class, so every workflow method returns the job
+% and must be reassigned.
+
+job = trueEbsd(imgList)
+
+%%%
+% Plot the as-imported sequence to check that the maps cover similar
+% regions of the sample. Note how different the image contrasts look — this
+% is why registration is done on edge transforms rather than raw values.
+
+plotImgList(imgList,'TrueEBSD starting image sequence')
+
+%% Resize images to match pixel size and field of view
+% The EBSD map and the images cover the same sample area but have different
+% pixel sizes. |pixelSizeMatch| resamples everything onto one common grid,
+% so that pixel (i,j) means roughly the same place in each. Images are
+% resampled by linear interpolation; EBSD data by nearest neighbour,
+% because orientations and phase labels have no meaningful in-between.
 %
-% job is a @trueEbsd object containing a sequence of @distortedImg
-% images.
+% This is bookkeeping only — no distortion has been corrected yet.
 
-% Construct distortedImg list and set up trueEBSD job
+pixSzIn = 0; % target pixel length in microns, or 0 for the smallest present
+job = pixelSizeMatch(job,pixSzIn);
 
-% Construct @distortedImg imgList{:} 
-imgList=cell(1,5);
-imgList{1} = distortedImg('bc','drift-shift', ebsd, 'highContrast',1,'edgePadWidth',3);
-imgList{2} = distortedImg(img.fsdB3, 'true',  'dxy', img.pixSzImg, 'highContrast',1,'edgePadWidth',5);
-imgList{3} = distortedImg(img.fsdT3, 'shift', 'dxy', img.pixSzImg, 'highContrast',1,'edgePadWidth',5);
-imgList{4} = distortedImg(img.fsdT1, 'tilt',  'dxy', img.pixSzImg, 'highContrast',1,'edgePadWidth',5);
-imgList{5} = distortedImg(img.fsdT10,'true',  'dxy', img.pixSzImg, 'highContrast',1,'edgePadWidth',3);
+%%%
+% The job now has a new property |job.resizedList| holding the output.
 
-% do some simple image denoising
-for k = 2:5
-  imgList{k}.img = rescale(imboxfilt(imgList{k}.img,3));
-end
+display(job)
 
-%%
-% @trueEbsd job is a TrueEBSD class.
-% The starting data for the TrueEBSD workflow are stored in |job.imgList|.
-
-job = trueEbsd(imgList{:});
-
-%%
-% Plot as-imported image sequence to check they are all of similar regions
-% on the sample, but the image contrasts look quite different.
-
-t = plot(job);
-title(t,'TrueEBSD starting image sequence')
-
-%% Resize images to match pixel size and FOV
-% The EBSD map and images in |job.imgList| are of the same sample area
-% but have different pixel sizes. Here, we match up the pixel positions of
-% the the image sequence in |job.imgList|.
+%% [Optional] Change the cross-correlation ROI settings
+% TrueEBSD registration cross-correlates pairs of regions of interest (ROI)
+% between sequential images. ROI size and spacing are the tunable
+% parameters, held in |job.resizedList(n).setXCF(m)| — one entry per
+% distortion-model stage of that hop.
 %
-% Inputs - distorted image sequence |job.imgList|, target pixel size pixSzIn
+% |pixelSizeMatch| guesses values that are usually sensible for a
+% polycrystal EBSD map, so most users never touch this. If you do, note the
+% settings are in *pixels*, so they must be written after |pixelSizeMatch|
+% (which creates the grid) and before |calcShifts|. A good rule of thumb is
+% an ROI at least four times wider than the local shifts you expect, and it
+% must be a power of two for the cross-correlation to work properly.
 %
-% Outputs - distorted image sequence on a common pixel grid |job.resizedList|
+% Here we deliberately misjudge and choose an ROI box that is far too small
+% for the EBSD map drift correction, to demonstrate the automatic retry
+% below.
 
-pixSzIn = 0; % target pixel length in microns, or 0 to default to smallest common pixel size
-job.pixelSizeMatch(pixSzIn)
-
-%%
-% Now |job| has a new property |job.resizedList|, which is where the
-% outputs of |pixelSizeMatch| are stored.
-
-t = plot(job,job.resizedList);
-title(t,'TrueEBSD image sequence for cross-correlation');
-
-%% [Optional] Change cross-correlation function (XCF) ROI settings
-% TrueEBSD image registration computes the cross-correlation function (XCF)
-% between pairs of regions of interest (ROI) in sequential images. The ROI
-% size and spacing within each image pair are tunable parameters in
-% TrueEBSD.
-%
-% The pixelSizeMatch function automatically guesses some normally sensible
-% parameters for a polycrystal EBSD map, but you can also set custom values.
-% You can define one XCF setting in job.resizedList{n}.setXCF{:}
-% When selecting ROI size, a good rule of thumb is an ROI at least 4 times
-% wider than the measured local image shifts. It also needs to be a power of 2
-% for the XCF to work properly. 
-%
-% You can set a custom XCF for each individual distortion model in the distorted
-% image (job.resizedList{n}.distortionModel).
-%
-% Here, we deliberately misjudge and choose an ROI box that is too small
-% for the EBSD map job.resizedList{1}, which is used to correct EBSD map drift
-% (linear interpolation between rigid EBSD map rows).
-
-% only a small box
-customSetXCF1.ROISize = 2^round(log2(32));
+customSetXCF1.ROISize = 2^round(log2(32));   % deliberately too small
 customSetXCF1.NumROI = struct;
-customSetXCF1.NumROI.x = 40; % good rule of thumb: as many ROI as grains in FOV
-customSetXCF1.NumROI.y = round(customSetXCF1.NumROI.x * size(job.resizedList{1}.img,1)/size(job.resizedList{1}.img,2)); % follow image aspect ratio
-customSetXCF1.XCFMesh=250; % correlation peak upsampling, default 250
-customSetXCF1.xcfImg = 'edge'; %choose whether to correlate edge transforms or images
+customSetXCF1.NumROI.x = 40;                 % rule of thumb: as many ROI as grains across
+customSetXCF1.NumROI.y = round(customSetXCF1.NumROI.x * ...
+  size(job.resizedList(1).img,1)/size(job.resizedList(1).img,2)); % follow the aspect ratio
+customSetXCF1.xcfImg = 'edge';               % correlate edge transforms, or 'img' for raw values
 
-% now we make it a bit bigger
 customSetXCF2 = customSetXCF1;
 customSetXCF2.ROISize = 2^round(log2(128));
 
-% assign customSetXCF
-job.resizedList{1}.setXCF{2} = customSetXCF1;
-job.resizedList{3}.setXCF{1} = customSetXCF2;
-% or just rewrite individual properties
-job.resizedList{1}.setXCF{1}.ROISize = 2^round(log2(64));
-job.resizedList{3}.setXCF{1}.xcfImg = 'img';
-job.resizedList{4}.setXCF{1}.xcfImg = 'img';
-job.resizedList{5}.setXCF{1}.xcfImg = 'img';
+% assign a whole settings struct
+job.resizedList(1).setXCF(2) = customSetXCF1;
+job.resizedList(3).setXCF(1) = customSetXCF2;
 
-%% Calculate local image shifts and fit to a distortion model
+% or overwrite individual properties
+job.resizedList(1).setXCF(1).ROISize = 2^round(log2(64));
+job.resizedList(3).setXCF(1).xcfImg = 'img';
+job.resizedList(4).setXCF(1).xcfImg = 'img';
+job.resizedList(5).setXCF(1).xcfImg = 'img';
+
+%% Calculate local image shifts and fit a distortion model
+% These are the images that will actually be cross-correlated — the edge
+% transform where |xcfImg| is |'edge'|, the raw values where it is |'img'|.
+% Edge transforms are what make an EBSD band contrast map comparable to a
+% backscatter image at all.
+
+plotImgList(job.resizedList,'TrueEBSD image sequence for cross-correlation','xcf')
+
+%%%
+% Now compute the local ROI shifts and fit them to the distortion model
+% named on each hop. After each correction step the average ROI shifts (X,
+% Y and length components) are printed to the command window.
 %
-% These are the image pairs that will be used for cross-correlation. 
-figure('WindowState', 'maximized'); 
-t=tiledlayout('flow','TileSpacing','tight','Padding','tight');
-
-for n=1:numel(job.resizedList)
-  nexttile;
-  imagesc('XData',job.resizedList{n}.dx.*(1:size(job.resizedList{n}.img,2)),...
-    'YData',job.resizedList{n}.dy*(1:size(job.resizedList{n}.img,1)),...
-    'CData',job.resizedList{n}.(job.resizedList{n}.setXCF{1}.xcfImg));
-  colormap gray; axis image on ij;
-end
-linkaxes;
-
-
-
-%% Compute image shifts
-% Now we compute local image ROI shifts and fit them to distortion models. 
-% After each image correction step, the average ROI shifts (X, Y and length
-% components) are printed to the command window. 
+% The |'fitErr'| flag means residual local shifts are re-measured after
+% correction, but not included in the result. If that residual is small —
+% around one pixel or less — the registration most likely succeeded.
 %
-% The |'fitErr'| flag means that residual local image shifts are recomputed
-% after image correction but not included in the final result. If this
-% number is small (around 1 pixel or less) then most likely the image
-% registration was successful.
+% We just set the ROI box too small for the EBSD map drift correction, so
+% its average residual shift comes out greater than 2 pixels. |calcShifts|
+% responds by doubling the ROI size and retrying, and keeps doing so until
+% either the residual drops below 2 pixels or the ROI outgrows the image.
 %
-% Just now, we intentionally set the ROI box size too small for the EBSD
-% map drift correction step. Therefore, the average residual shift is > 2
-% pixels long. The function |calcShifts| tries to fix this by doubling the
-% ROI size and retrying the image registration step. It will try to do this
-% until either the ROI are too big to fit into the image, or the residual
-% shifts are < 2 pixels.
+% The exception is a hop named |'true'|, such as images 2 and 3 here, where
+% nothing separates the pair. TrueEBSD takes those shifts to be identically
+% zero and ignores the residual even when it is large.
+
+job = calcShifts(job,'fitErr');
+
+%%%
+% The job now has |job.shifts| — a cell array, one entry per hop, each
+% holding one <pairShifts.pairShifts.html pairShifts> per distortion-model
+% stage — and |job.fitError|, the residuals measured after correction.
+
+display(job)
+
+%% Undistort
+% This accumulates the shifts in reverse — the first map receives every
+% hop's shift, the reference none — and resamples with nearest-neighbour
+% interpolation, so no orientation or phase label is ever invented by
+% averaging two real ones. The result is |job.undistortedList|, in which
+% every pixel of every map can be directly overlaid.
+
+job = undistort(job);
+
+display(job)
+
+plotImgList(job.undistortedList,'TrueEBSD image sequence after alignment')
+
+%% Plot the aligned data as MTEX EBSD maps
+% Plotting the images back onto the EBSD map is a good check that nothing
+% is indexed upside down relative to the map. Images are stored and read by
+% MATLAB in the |axis ij| convention, whereas an EBSD map carries whatever
+% convention |ebsd.how2plot| says, so |ij2EbsdSquare| is needed to rotate
+% the image data into the map's plotting convention.
 %
-% The only exception to this is where the distortion name is |'true'|, such
-% as between images 3 and 2 in this dataset. For this case, TrueEBSD
-% assumes that all the shifts between this image pair are zeros, and
-% ignores the residual shifts, even if they are greater than 2 pixels.
+% Note |fsdB3| is a three-channel colour image, and TrueEBSD carries all
+% its channels through the workflow. Plotting values onto an EBSD map needs
+% one value per pixel, so multi-channel images are averaged down to one
+% channel here.
 
-job.calcShifts('fitErr')
+ebsdOut = job.undistortedList(1).ebsd;
 
-%%
-% Now job has a new property job.shifts, which is where the outputs of
-% |calcShifts| are stored.
+figure
+nextAxis
+plot(ebsdOut('W C'), ebsdOut('W C').orientations, ebsdOut.how2plot, 'coordinates','on')
+title('Undistorted MTEX EBSD map (WC IPF out of screen)','Color','k')
 
-%% Undistort images
-% This applies the image shifts between each image pair in job.shifts to
-% the data in job.resizedList, and outputs a new property
-% job.undistortedList which contains aligned image data. Now all pixels in
-% this image sequence can be directly overlaid.
+for n = 1:numel(job.undistortedList)
 
-job.undistort
+  im = job.undistortedList(n).img;
+  if size(im,3) > 1, im = mean(im,3); end
 
-%% Plot images after distortion correction
-
-t = job.plot(job.undistortedList);
-title(t,'TrueEBSD image sequence after alignment');
-
-%% Plot data as MTEX EBSD maps
-% We can also plot all images as MTEX EBSD maps. This is a good check to
-% make sure images are not indexed 'upside down' relative to the EBSD map.
-% Since images are usually stored and read by MATLAB using the 'axis ij'
-% convention, but EBSD maps can have other kinds of plotting convention
-% defined in ebsd.plottingConvention, we need the ij2EbsdSquare helper
-% function to rotate the image data into the ebsd map plottingConvention.
-
-figure;
-nextAxis;
-plot(job.undistortedList{1}.ebsd('W C'), job.undistortedList{1}.ebsd('W C').orientations, 'coordinates','on');
-
-title('Undistorted MTEX EBSD map (WC IPF-out of screen)','Color','k');
-for n=1:numel(job.undistortedList)
-  nextAxis;
-  plot(job.undistortedList{1}.ebsd, ...
-    ij2EbsdSquare(job.undistortedList{1}.ebsd,job.undistortedList{n}.img), 'coordinates','on');
-  mtexColorMap gray;
-  title(['Undistorted MTEX image ' num2str(n)],'Color','k');
+  nextAxis
+  plot(ebsdOut, ij2EbsdSquare(ebsdOut,im), ebsdOut.how2plot, 'coordinates','on')
+  mtexColorMap gray
+  title(['Undistorted MTEX image ' num2str(n)],'Color','k')
 end
 
 %% Finish
-% This is the end of the TrueEBSD distortion correction workflow. 
-% 
-% You can save your data here, or do any further data analysis that you
-% would on normal MTEX EBSD maps.
+% That is the end of the distortion correction workflow. Every image and
+% the EBSD map now overlay pixel for pixel, and |ebsdOut| is an ordinary
+% MTEX EBSD map — anything you would normally do with one works from here,
+% including using an aligned image as a per-pixel property or as a phase.
 %
-%% Further Analysis
-% For this dataset, we want to measure the contiguity of the WC grains in
-% this EBSD map. That will be covered in the next example script
-% example_WCCo_contiguity.
+% For this dataset the intended follow-on is measuring the contiguity of
+% the WC grains.
+
+%% Helper
+% Tile a distortedImg sequence, plotted in microns on a shared axis.
+
+function plotImgList(list,ttl,which)
+
+if nargin < 3, which = 'img'; end
+
+figure('WindowState','maximized');
+t = tiledlayout('flow','TileSpacing','tight','Padding','tight');
+title(t,ttl);
+
+for n = 1:numel(list)
+
+  if strcmp(which,'xcf')
+    cData = list(n).(list(n).setXCF(1).xcfImg);
+  else
+    cData = list(n).img;
+  end
+
+  nexttile
+  imagesc('XData',list(n).dx .* (1:size(list(n).img,2)),...
+    'YData',list(n).dy .* (1:size(list(n).img,1)),...
+    'CData',cData);
+  colormap gray; axis image on ij
+end
+linkaxes
+
+end
