@@ -231,6 +231,11 @@ fig = gcf;
 fig.PaperPositionMode = 'auto';
 saveas(fig,fullfile(AddFiguresDir,strcat(bname,'-HW', tmp,'-phi2ODF.png')))
 
+% this block runs once per texture per halfwidth, so leaving the figure
+% open would pile up 9*20 = 180 of them. The png just written is the
+% output that is wanted, nothing below reads the figure back.
+close(fig)
+
 
 %saveas(fig,fullfile(AddFiguresDir,strcat(bname,'-HW', tmp,'-phi2ODF.png')))
 

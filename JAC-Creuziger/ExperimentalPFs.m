@@ -356,8 +356,10 @@ end
 
 i=i+1;
 
-% uncomment if you'd like to close the plots at each point.
-%close all
+% close the plots of this data set before moving to the next one. Each pass
+% opens several figures and the tiffs above are the output that is wanted,
+% so keeping them would just leave a pile of windows behind.
+close all
 
 %end of for loop
 end
