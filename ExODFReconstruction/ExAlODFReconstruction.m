@@ -7,9 +7,9 @@
 % X'Pert diffractometer using Cu-Kalpha radiation. The sample comes from
 % a commercial aluminum alloy (AA6061-T4) sheet of 0.9 mm thickness.
 % Scans were done over the RD-TD plane of the sheet (RD//X; TD//Y; ND//Z).
-% The tree main FCC poles for XRD were scanned, i.e., {1 1 1}, {2 0 0}, {2 2 0}.
+% The three main FCC poles for XRD were scanned, i.e., {1 1 1}, {2 0 0}, {2 2 0}.
 
-% Lets import the raw data
+% Let's import the raw data
 
 % crystal symmetry
 CS = crystalSymmetry('m-3m', [1 1 1],'mineral','Al');
@@ -41,11 +41,11 @@ y = {...
 S2G = regularS2Grid('points', [1,18], 'antipodal');
 
 %%
-% Lets store these intensities in variables of type
+% Let's store these intensities in variables of type
 % <PoleFigure.PoleFigure.html |PoleFigure|>.
 
 mtt = 2;    % time per measurement point of each PF scan
-mtb = 30;   % time for the full circle (azimutal angle) of defocusing scan
+mtb = 30;   % time for the full circle (azimuthal angle) of defocusing scan
 
 % create background and defocusing pole figures
 pf_bg = PoleFigure(h, S2G, y, CS);
@@ -63,7 +63,7 @@ pf = (pf - pf_bg) ./ pf_def;
 
 %%
 % Despite the defocusing correction the intensities at larger polar angles
-% are very off, lets simply remove them.
+% are very off, let's simply remove them.
 
 pf(pf.r.theta >= 70*degree) = [];
 
@@ -82,8 +82,10 @@ odf = solver.calcODF;
 
 plotPDF(odf, h, 'minmax')
 
+%% Interpretation
+%
 % This texture shows the typically dominant 'cube' orientation due to
-% recrystallization after rolling of Al alloy plates and sheets.
-% There's a slight misalignment of the sample's orthotropy axes wrt the
+% recrystallization after rolling of Al alloy plates and sheets. There is a
+% slight misalignment of the sample's orthotropy axes with respect to the
 % X-Y directions. This is due to a small deviation of the sample when
 % positioned on the goniometer of the X-ray diffractometer.

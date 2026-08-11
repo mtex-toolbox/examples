@@ -1,9 +1,9 @@
 %% Seismic velocities and anisotropy - single crystal plots
 %
-% Plot 2D velocity surfaces - phase, slowness & wavefront For given plane
-% normal direction, for example xvector, yvector or zvector Stishovite
-% (SiO2) at high pressure
-%                 
+% Plot 2D velocity surfaces - phase, slowness and wavefront - for a given
+% plane normal direction, for example |xvector|, |yvector| or |zvector|.
+% The material is stishovite (SiO2) at high pressure.
+%
 % David Mainprice 1/05/2018
 %
 %% The Elastic Stiffness Tensor of Stishovite 
@@ -123,7 +123,7 @@ quiverSection(1./vs2,prop,planeNormal,optQuiverProp{:})
 
 axis off tight
 legend('Vp','Vs1','Vs2','pp','ps1','ps2','X',legendOpt{:})
-mtexTitle('Slowness surfaces (km/s)',titleOpt{:})
+mtexTitle('Slowness surfaces (s/km)',titleOpt{:})
 
 % seismic slowness slow = blue 2 red =fast
 mtexColorMap blue2red
@@ -137,10 +137,10 @@ drawNow(gcm,'figSize','large')
 %% Select the two S-waves (Vs1 and Vs2 where Vs1>Vs2 in velocity)
 %
 % by the orientation of the polarization vectors ps1 and ps2 with respect
-% to the specimen Z direction. So that sv (v=vertical) is S-wave with
-% polarization closest to Z sh (h=horizontal) has the polarization closest
-% to the plane normal to Z Both polarizations pairs (sv and sh) and (ps1
-% and ps2) are orthogonal
+% to the specimen Z direction, so that sv (v=vertical) is the S-wave with
+% polarization closest to Z, while sh (h=horizontal) has the polarization
+% closest to the plane normal to Z. Both pairs of polarizations, (sv,sh)
+% and (ps1,ps2), are orthogonal.
 %
 % which values to switch
 % this defines a function which is either one or zero
@@ -150,7 +150,7 @@ vsh = id .* vs2 + (1-id) .* vs1;
 psv = id .* ps1 + (1-id) .* ps2;
 psh = id .* ps2 + (1-id) .* ps1;
 
-%% 1: Phase velocity surface (km/s) with sv1 & vs2
+%% 3: Phase velocity surface (km/s) with vs1 & vs2
 
 figure(1)
 % phase velocities
@@ -181,7 +181,7 @@ mtexColorbar('Title','(km/s)',ColorbarOpt{:})
 hold off
 drawNow(gcm,'figSize','large')
 
-%% 2: Phase velocity surface (km/s) with svs & vsh
+%% 4: Phase velocity surface (km/s) with vsv & vsh
 
 figure(2)
 % phase velocities
@@ -212,7 +212,7 @@ mtexColorbar('Title','(km/s)',ColorbarOpt{:})
 hold off
 drawNow(gcm,'figSize','large')
 
-%% 3: plot slowness in plane normal Z
+%% 5: plot slowness in plane normal Z
 
 figure(3)
 plotSection(1./vp,planeNormal,optSec{:})
@@ -231,7 +231,7 @@ quiverSection(1./vs1,prop,planeNormal,optQuiverProp{:})
 quiverSection(1./vs2,prop,planeNormal,optQuiverProp{:})
 
 axis off tight
-legend('Sp','Ss1','Ss2','Sp','Ss1','Ss2','X',legendOpt{:})
+legend('Sp','Ss1','Ss2','pp','ps1','ps2','X',legendOpt{:})
 mtexTitle('Stishovite : Slowness surfaces (s/km)',titleOpt{:})
 % seismic slowness slow = blue 2 red =fast
 mtexColorMap red2blue
@@ -269,7 +269,7 @@ quiverSection(Evs1,prop,planeNormal,optQuiverProp{:})
 quiverSection(Evs2,prop,planeNormal,optQuiverProp{:})
 
 axis off tight
-legend('Evp','Es1','Es2','Epv','Eps1','Eps2','X',legendOpt{:})
+legend('Evp','Evs1','Evs2','pp','ps1','ps2','X',legendOpt{:})
 mtexTitle('Stishovite : Wavefront surfaces (km/s)',titleOpt{:})
 
 mtexColorbar('Title','(km/s)',ColorbarOpt{:})

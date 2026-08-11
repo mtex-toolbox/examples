@@ -1,8 +1,18 @@
+function dSo = DisTypesFo(CS)
 % Define dislocation types for olivine
+%
+% Syntax
+%   dSo = DisTypesFo(ebsd('Forsterite').CS)
+%
+% Input
+%  CS - @crystalSymmetry of the olivine phase
+%
+% Output
+%  dSo - @dislocationSystem with normalized energies set
+%
+% See list in Wallis et al., Ultramicroscopy (2016), Table 1.
 % Sept. 23: add [010] slip systems
-% See list in Wallis et al., Ultramicroscopy (2016), Table 1
-function[dSo]= DisTypesFo(CS)
-%CS = ebsd('Forsterite').CS;
+
 sSo1 = slipSystem(Miller(1,0,0,CS,'uvw'),Miller(0,1,0,CS,'hkl'));
 sSo2 = slipSystem(Miller(1,0,0,CS,'uvw'),Miller(0,0,1,CS,'hkl'));
 sSo3 = slipSystem(Miller(0,0,1,CS,'uvw'),Miller(1,0,0,CS,'hkl'));

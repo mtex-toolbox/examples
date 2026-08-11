@@ -22,13 +22,13 @@
 % the circumference of a perfect circle. It decreases from $\Psi = 0.5$,
 % where the grain has a perfect circular shape, to $\Psi = 0$ where the
 % grain boundary is infinitely irregular. The statistics of grain boundary
-% sphericity can be used to segregate recrystallised grains from remnant
+% sphericity can be used to segregate recrystallized grains from remnant
 % original grains (please refer to the paper for more details).
 %
 %% Data
 % The EBSD data set used in this demonstration (PIL185.ctf) is available
 % from <https://doi.org/10.6084/m9.figshare.13456550>. The EBSD data were
-% collected with a step size of 5 µm and representeds an ice sample
+% collected with a step size of 5 µm and represents an ice sample
 % deformed at -20°C to 12 percent axial strain. Let's import the data and
 % reconstruct some grains.
  
@@ -38,31 +38,26 @@ plotzIntoPlane
  
 % import the data
 path = [mtexExamplePath filesep 'ExGrains' filesep ];
-ebsd = EBSD.load([path 'PIL185.ctf'],'convertSpatial2EulerReferenceFrame');
+ebsd = EBSD.load([path 'PIL185.ctf'],'EulerCorrection',rotation.id);
+ebsd = rotate(ebsd,rotation.byAxisAngle(xvector,180*degree),'keepEuler');
  
 % critical misorientation for grain reconstruction
 threshold = 10 *degree;
  
-% first pass at reconstructing grains
-[grains, ebsd.grainId] = calcGrains(ebsd('ice'),'angle',threshold);
- 
-% remove ebsd data that correspond to up to 4 pixel grains
-ebsd(grains(grains.grainSize < 5)) = [];
-
-% redo grain reconstruction - interpolate non-indexed space
-[grains, ebsd.grainId] = calcGrains(ebsd('ice'),'angle',threshold);
- 
+% reconstructing grains
+[grains, ebsd] = calcGrains(ebsd,'angle',threshold,'minPixel',5);
+  
 % remove all boundary grains
 grains(grains.isBoundary) = [];
 
 % remove too small irregular grains
-grains(grains.grainSize < grains.boundarySize / 2) = [];
+grains(grains.numPixel < grains.boundarySize / 2) = [];
 
 % plot the result
 plot(ebsd,ebsd.orientations)
 
 hold on
-plot(grains.boundary)
+plot(grains.boundary,'LineWidth',1.5)
 hold off
 
 %% Computation of the Sphericity
@@ -86,18 +81,18 @@ clear Psi
 %
 % Next we investigate how step size influences grain boundary irregularity
 % measurements. To do this, we can artificially increase the step size of
-% the EBSD data to from 10 up to 100 μm. Then, we choose one representative
+% the EBSD data from 5 up to 100 μm. Then, we choose one representative
 % grain (one with a large number of pixels) and see how the sphericity
 % parameter changes as the EBSD step size increases.
 
 newMtexFigure('layout',[4,5])
 for i = 1:20
     
-  % now, we increase the step size of EBSD data artifically
+  % now, we increase the step size of EBSD data artificially
   ebsd_reduced = reduce(ebsd,i);
   
   % reconstruct grains using function calcGrains
-  grains_reduced = calcGrains(ebsd_reduced('ice'));
+  grains_reduced = calcGrains(ebsd_reduced,'minPixel',5);
   
   % choose a grain with a large pixel number within the EBSD map with 5
   % micron step size, from each reduced EBSD map by location
@@ -107,7 +102,7 @@ for i = 1:20
   Psi(i) = grain.area ./ (grain.perimeter('withInclusion') .* grain.equivalentRadius);
   
   % calculate the number of pixels
-  gS(i) = grain.grainSize;
+  gS(i) = grain.numPixel;
   
   % plot evolution of grain geometry as step size increases
   if i>1, nextAxis; end
@@ -152,7 +147,7 @@ set (gca, 'xscale', 'log')
 newMtexFigure('layout',[3,3],'figSize','normal');
 
 % find all grains with more than 2000 pixels
-grains = grains(grains.grainSize > 2000);
+grains = grains(grains.numPixel > 2000);
  
 for m = 1:36
     
@@ -165,7 +160,7 @@ for m = 1:36
 
   if mod(m,4)~=1, continue; end
   
-  % Visualise the evolution of grain boundary geometry as the smoothening
+  % Visualize the evolution of grain boundary geometry as the smoothing
   % parameter increases, using a grain as an example
     
   % select grain
@@ -180,7 +175,8 @@ for m = 1:36
 end
 
 setColorRange([0 0.5])
-mtexColorbar jet 
+mtexColorbar ('title', 'sphericity parameter')
+mtexColorMap jet
  
 %% 
 % Finally we plot the sphericity as a function of the smoothening parameter

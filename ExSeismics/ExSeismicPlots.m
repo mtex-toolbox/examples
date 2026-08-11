@@ -1,7 +1,7 @@
 %% Seismic velocities and anisotropy
 %
-% Calculalating and plotting elastic velocities from elastic stiffness
-% Cijkl tensor and density (by David Mainprice).
+% Calculating and plotting elastic velocities from elastic stiffness
+% tensor $C_{ijkl}$ and density (by David Mainprice).
 %
 %
 %% Crystal Symmetry and definition of the elastic stiffness tensor
@@ -20,7 +20,7 @@ cs_tensor = crystalSymmetry('mmm',[4.7646,10.2296,5.9942],...
 % The elastic constants of San Carlos olivine to 17 GPa.
 % Journal of Geophysical Research 102: 12253-12263.
 %
-% Enter tensor as 6 by 6 matrix,M line by line.
+% Enter tensor as 6 by 6 matrix M, line by line.
 M = [[320.5  68.15  71.6     0     0     0];...
     [ 68.15  196.5  76.8     0     0     0];...
     [  71.6   76.8 233.5     0     0     0];...
@@ -43,10 +43,7 @@ C = stiffnessTensor(M,cs_tensor,'density',rho)
 %% Plotting section
 % Here we set preference for a nice plot.
 
-% plotting convention - plot a-axis to east
-plota2east;
-
-% set colour map to seismic color map : blue2redColorMap
+% set color map to seismic color map: blue2redColorMap
 setMTEXpref('defaultColorMap',blue2redColorMap)
 
 % some options
@@ -69,7 +66,7 @@ mtexFig = mtexFigure('position',[0 0 1000 1000]);
 % Standard Seismic plot with 8 subplots in 3 by 3 matrix
 %
 % Plot matrix layout
-%        1 Vp        2 AVs      3 S1 polarizations
+%        1 Vp        2 AVs      3 S1 polarization
 %        4 Vs1       5 Vs2      6 dVs
 %        7 Vp/Vs1    8 Vp/Vs2
 %
@@ -99,7 +96,7 @@ hold off
 % subTitle
 xlabel(['Vp Anisotropy = ',num2str(AVp,'%6.1f')],titleOpt{:})
 
-%% AVS : Plot S-wave anisotropy percentage for each proppagation direction
+%% AVs : Plot S-wave anisotropy percentage for each propagation direction
 % defined as AVs = 200*(Vs1-Vs2)/(Vs1+Vs2)
 
 % create a new axis
@@ -157,7 +154,6 @@ hold on
 plot(ps1,'linewidth',2,'color','black')
 
 % mark maximum with black square and minimum with white circle
-hold on
 plot(maxS1pos.symmetrise,blackMarker{:})
 plot(minS1pos.symmetrise,whiteMarker{:})
 hold off
@@ -180,12 +176,11 @@ hold on
 plot(ps2,'linewidth',2,'color','black')
 
 % mark maximum with black square and minimum with white circle
-hold on
 plot(maxS2pos.symmetrise,blackMarker{:})
 plot(minS2pos.symmetrise,whiteMarker{:})
 hold off
 
-%% dVs : Plot Velocity difference Vs1-Vs2 (km/s) plus Vs1 polarizations
+%% dVs : Plot Velocity difference Vs1-Vs2 (km/s) plus Vs1 polarization
 
 % create a new axis
 nextAxis

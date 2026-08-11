@@ -70,10 +70,8 @@ for ii = 1:length(thrsh_angles)
   mtexdata martensite silent
 
   % Calculate grains with defined angular threshold
-  [grains,ebsd.grainId] = calcGrains(ebsd('indexed'), 'angle',thrsh_angles(ii)*degree);
-  ebsd(grains(grains.grainSize < 3)) = [];
-  [grains,ebsd.grainId] = calcGrains(ebsd('indexed'),'angle',thrsh_angles(ii)*degree);
-  grains = smooth(grains,5);
+  [grains,ebsd] = calcGrains(ebsd, 'angle',thrsh_angles(ii)*degree,'minPixel',3);
+    grains = smooth(grains,5);
   
   % Plot the orientation data and overlay the grain boundaries
   plot(ebsd,ebsd.orientations);
@@ -115,10 +113,8 @@ for ii = 1:length(thrsh_angles)
   mtexdata martensite silent
     
   % Calculate grains with defined angular threshold
-  [grains,ebsd.grainId] = calcGrains(ebsd('indexed'), 'angle',thrsh_angles(ii)*degree);
-  ebsd(grains(grains.grainSize < 3)) = [];
-  [grains,ebsd.grainId] = calcGrains(ebsd('indexed'),'angle',thrsh_angles(ii)*degree);
-  grains = smooth(grains,5);
+  [grains,ebsd] = calcGrains(ebsd, 'angle',thrsh_angles(ii)*degree,'minPixel',3);
+    grains = smooth(grains,5);
   
   % set up the PGR job
   job = parentGrainReconstructor(ebsd,grains);
@@ -165,9 +161,7 @@ end
 mtexdata martensite silent
 
 % Calculate grains with defined angular threshold
-[grains,ebsd.grainId] = calcGrains(ebsd('indexed'), 'angle',2*degree);
-ebsd(grains(grains.grainSize < 3)) = [];
-[grains,ebsd.grainId] = calcGrains(ebsd('indexed'),'angle',2*degree);
+[grains,ebsd] = calcGrains(ebsd('indexed'), 'angle',2*degree,'minPixel',3);
 grains = smooth(grains,5);
     
 % Initialize the parent grain reconstructor class
@@ -339,10 +333,10 @@ legend(append("Thresh.: ",string(threshold),", Quantile: ",string(quantile)));
 % the OR and to 0 for child grain misorientations that disagree strongly with
 % the OR. The function therefore describes the probability with which two
 % grains belong to the same parent grain. Let us plot this probability 
-% function on top of the OR misift distribution from before for few different 
-% combinations of the parameters |tolerance| and |threshold|.
+% function on top of the OR misfit distribution from before for a few
+% different combinations of the parameters |tolerance| and |threshold|.
 
-% Let u assume an OR and iteratively refine it.
+% Let us assume an OR and iteratively refine it.
 job.p2c = KS;
 job.calcParent2Child;
 
@@ -543,7 +537,7 @@ for ii = 1:length(alpha)
 end
 
 %%
-% It may not be entirely possible to judge the quality of the PGR with
+% It may not be entirely possible to judge the quality of the PGR without
 % having access to a validation dataset (i.e. without knowing the actual
 % parent microstructure), nevertheless some observations can be made: An
 % inflation power of 1.2 seems to be too high, leading to large patches
@@ -629,7 +623,7 @@ title("+ removing small inclusions")
 
 % Prepare plotting
 figure;
-f(8) = newMtexFigure('layout',[1,2]);
+f(9) = newMtexFigure('layout',[1,2]);
 
 % Plot the initial orientation data with the prior parent grain outlines
 plot(job.ebsdPrior,job.ebsdPrior.orientations);
